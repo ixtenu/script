@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+# expand(1) wrapper script
+
+tabw=4
+if [ $# -ge 1 -a "${1:0:2}" = "-t" ]; then
+	if [ "$1" = "-t" ]; then
+		# space between -t and number
+		shift
+		if [ $# -eq 0 ]; then
+			echo "$0: -t requires an argument" 1>&2
+			exit 1
+		fi
+		tabw="$1"
+		shift
+	else
+		# no space between -t and number
+		tabw="${1:2}"
+		shift
+	fi
+fi
+
+if [ $# -eq 0 ]; then
+	expand -t$tabw
+	exit $?
+fi
+
+# create a temporary file which is deleted on exit
+tmpf=$(mktemp)
+trap 'rm -f -- "$tmpf"' EXIT
+
+for f in "$@"; do
+	expand -t$tabw < "$f" > "$tmpf"
+	cat "$tmpf" > "$f"
+done

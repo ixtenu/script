@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+# unexpand(1) wrapper script
+
+tabw=4
+if [ $# -ge 1 -a "${1:0:2}" = "-t" ]; then
+	if [ "$1" = "-t" ]; then
+		# space between -t and number
+		shift
+		if [ $# -eq 0 ]; then
+			echo "$0: -t requires an argument" 1>&2
+			exit 1
+		fi
+		tabw="$1"
+		shift
+	else
+		# no space between -t and number
+		tabw="${1:2}"
+		shift
+	fi
+fi
+
+# all unexpand(1) implementations except OpenBSD's support -t
+targ="-t$tabw"
+if [ "$(uname)" = "OpenBSD" ]; then
+	if [ $tabw -ne 8 ]; then
+		echo "$0: OpenBSD unexpand lacks -t option, must use -t8" 1>&2
+		exit 1
+	fi
+	targ=""
+fi
+
+if [ $# -eq 0 ]; then
+	unexpand $targ
+	exit $?
+fi
+
+# create a temporary file which is deleted on exit
+tmpf=$(mktemp)
+trap 'rm -f -- "$tmpf"' EXIT
+
+for f in "$@"; do
+	unexpand $targ < "$f" > "$tmpf"
+	cat "$tmpf" > "$f"
+done

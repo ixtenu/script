@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+# remove one level of indentation
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	exit 1
+fi
+
+# first substitution removes four spaces, second removes one tab; this
+# allows unindenting code which uses either tabs or four spaces for
+# indentation, as long as tabs don't follow spaces
+sed 's/^    //' | sed 's/^	//'

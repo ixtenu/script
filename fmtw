@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+# fmt(1) wrapper script
+
+width=80
+if [ $# -ge 1 -a "${1:0:2}" = "-w" ]; then
+	if [ "$1" = "-w" ]; then
+		# space between -w and number
+		shift
+		if [ $# -eq 0 ]; then
+			echo "$0: -w requires an argument" 1>&2
+			exit 1
+		fi
+		width="$1"
+		shift
+	else
+		# no space between -w and number
+		width="${1:2}"
+		shift
+	fi
+fi
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	echo "usage: $0 width" 1>&2
+	exit 1
+fi
+
+fmt --version | grep GNU >/dev/null
+if [ $? -eq 0 ]; then
+	# GNU coreutils fmt(1)
+	fmt --uniform-spacing --width=$width --goal=$width
+else
+	# BSD fmt(1)
+	fmt -s -w$width
+fi

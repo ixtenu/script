@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# fmt(1) wrapper script for column 72
+
+fmtw -w72 "$@"

@@ -1,0 +1,60 @@
+#!/usr/bin/env sh
+# fmt(1) wrapper script for prefixed text
+# useful for comments (e.g., "//" prefix) and quotations (">" prefix)
+
+width=80
+if [ $# -ge 1 -a "${1:0:2}" = "-w" ]; then
+	if [ "$1" = "-w" ]; then
+		# space between -w and number
+		shift
+		if [ $# -eq 0 ]; then
+			echo "$0: -w requires an argument" 1>&2
+			exit 1
+		fi
+		width="$1"
+		shift
+	else
+		# no space between -w and number
+		width="${1:2}"
+		shift
+	fi
+fi
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	exit 1
+fi
+
+# create a temporary file which is deleted on exit
+tmpf=$(mktemp)
+trap 'rm -f -- "$tmpf"' EXIT
+
+# dump stdin to the temporary file
+cat > "$tmpf"
+
+# first token on first line is taken as the prefix
+prefix=`sed 1q "$tmpf" | awk '{ print $1 }'`
+
+# Doxygen comments are "///" and batch file comments are "rem",
+# so allow prefixes <= 3 bytes; longer prefixes could be allowed
+# if there is a need.
+if [ ${#prefix} -gt 3 ]; then
+	echo "$0: $prefix is longer than expected" 1>&2
+	exit 1
+fi
+
+fmt --version | grep GNU >/dev/null
+if [ $? -eq 0 ]; then
+	# GNU coreutils fmt(1)
+	fmt --uniform-spacing --width=$width --goal=$width \
+		--prefix="$prefix " < "$tmpf"
+else
+	# BSD fmt(1) has no --prefix, so the prefix must be removed
+	# and re-added
+	width=`expr $width - ${#prefix}`
+	cat "$tmpf" | \
+		sed "s@^$prefix\( *\)@\1@" | \
+		fmt -s -w$width | \
+		sed "s@^.@$prefix @" | \
+		sed "s@^\$@$prefix@"
+fi
