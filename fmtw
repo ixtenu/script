@@ -28,11 +28,24 @@ if [ $# -ne 0 ]; then
 	exit 1
 fi
 
-fmt --version 2>/dev/null | grep GNU >/dev/null
+# plan9port's fmt(1) isn't compatible with this script; if plan9port is
+# at the front of the path, use the full path to the standard fmt(1).
+fmt=fmt
+if [ ! -z "$PLAN9" ]; then
+	case "$PATH" in
+	$PLAN9/bin:*)
+		fmt=/usr/bin/fmt
+		;;
+	*)
+		;;
+	esac
+fi
+
+$fmt --version 2>/dev/null | grep GNU >/dev/null
 if [ $? -eq 0 ]; then
 	# GNU coreutils fmt(1)
-	fmt --uniform-spacing --width=$width --goal=$width
+	$fmt --uniform-spacing --width=$width --goal=$width
 else
 	# BSD fmt(1)
-	fmt -s -w$width
+	$fmt -s -w$width
 fi
