@@ -2,20 +2,23 @@
 # unexpand(1) wrapper script
 
 tabw=4
-if [ $# -ge 1 -a "${1:0:2}" = "-t" ]; then
-	if [ "$1" = "-t" ]; then
-		# space between -t and number
-		shift
-		if [ $# -eq 0 ]; then
-			echo "$0: -t requires an argument" 1>&2
-			exit 1
+if [ $# -ge 1 ]; then
+	op=$(echo $1 | awk '{ s=substr($0,1,2); print s; }')
+	if [ "$op" = "-t" ]; then
+		if [ "$1" = "-t" ]; then
+			# space between -t and number
+			shift
+			if [ $# -eq 0 ]; then
+				echo "$0: -t requires an argument" 1>&2
+				exit 1
+			fi
+			tabw="$1"
+			shift
+		else
+			# no space between -t and number
+			tabw=$(echo $1 | awk '{ s=substr($0,3); print s; }')
+			shift
 		fi
-		tabw="$1"
-		shift
-	else
-		# no space between -t and number
-		tabw="${1:2}"
-		shift
 	fi
 fi
 
