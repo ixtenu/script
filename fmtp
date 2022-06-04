@@ -46,13 +46,15 @@ if [ ${#prefix} -gt 3 ]; then
 	exit 1
 fi
 
-# plan9port's fmt(1) isn't compatible with this script; if plan9port is
-# at the front of the path, use the full path to the standard fmt(1).
+# plan9port's fmt(1) and sed(1) aren't compatible with this script; if plan9port
+# is at the front of the path, use the full path to the standard utilities.
 fmt=fmt
+sed=sed
 if [ ! -z "$PLAN9" ]; then
 	case "$PATH" in
 	$PLAN9/bin:*)
 		fmt=/usr/bin/fmt
+		sed=/usr/bin/sed
 		;;
 	*)
 		;;
@@ -69,8 +71,8 @@ else
 	# and re-added
 	width=`expr $width - ${#prefix}`
 	cat "$tmpf" | \
-		sed "s@^$prefix\( *\)@\1@" | \
+		$sed "s@^$prefix\( *\)@\1@" | \
 		$fmt -s -w$width | \
-		sed "s@^.@$prefix @" | \
-		sed "s@^\$@$prefix@"
+		$sed "s@^.@$prefix @" | \
+		$sed "s@^\$@$prefix@"
 fi
