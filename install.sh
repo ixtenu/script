@@ -22,7 +22,7 @@ installfile() {
 }
 
 installdir() {
-	find "$1" -type f -perm +111 -depth 1 |
+	find "$1" -maxdepth 1 -type f -perm -100 |
 	while IFS= read -r fname; do
 		if [ "$fname" != "./$(basename $0)" ]; then
 			installfile $fname
