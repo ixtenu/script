@@ -69,10 +69,17 @@ if [ $? -eq 0 ]; then
 else
 	# BSD fmt(1) has no --prefix, so the prefix must be removed
 	# and re-added
-	width=`expr $width - ${#prefix}`
+	indent=`sed 1q "$tmpf" | $sed 's/\([ 	]*\).*/\1/'`
+	indentsp=`echo "$indent" | expand`
+	newwidth=`expr $width - ${#prefix} - ${#indentsp}`
+	if [ $newwidth -lt 0 ]; then
+		echo "$0: combined indent and prefix too long for goal width ($width)" 1>&2
+		echo "$0: indent.len=${#indentsp} prefix=\"$prefix\" prefix.len=${#prefix}" 1>&2
+		exit 1
+	fi
 	cat "$tmpf" | \
-		$sed "s@^$prefix\( *\)@\1@" | \
-		$fmt -s -w$width | \
-		$sed "s@^.@$prefix @" | \
-		$sed "s@^\$@$prefix@"
+		$sed "s@^$indent$prefix\( *\)@\1@" | \
+		$fmt -s -w$newwidth | \
+		$sed "s@^.@$indent$prefix @" | \
+		$sed "s@^\$@$indent$prefix@"
 fi
