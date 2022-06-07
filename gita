@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# alias for git add
+
+# within Acme, add current window if run without arguments
+if [ $# -eq 0 -a "$samfile" != "" ]; then
+	git add "$samfile"
+	exit 0
+fi
+
+git add "$@"

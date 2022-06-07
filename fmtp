@@ -46,20 +46,10 @@ if [ ${#prefix} -gt 3 ]; then
 	exit 1
 fi
 
-# plan9port's fmt(1) and sed(1) aren't compatible with this script; if plan9port
-# is at the front of the path, use the full path to the standard utilities.
-fmt=fmt
-sed=sed
-if [ ! -z "$PLAN9" ]; then
-	case "$PATH" in
-	$PLAN9/bin:*)
-		fmt=/usr/bin/fmt
-		sed=/usr/bin/sed
-		;;
-	*)
-		;;
-	esac
-fi
+# plan9port's fmt(1) and sed(1) aren't compatible with this script, so don't
+# use them even if $PLAN9/bin is at the front of the path
+fmt=$(no9 which fmt)
+sed=$(no9 which sed)
 
 $fmt --version 2>/dev/null | grep GNU >/dev/null
 if [ $? -eq 0 ]; then
