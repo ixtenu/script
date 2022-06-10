@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+# print statistics about ZFS's Adaptive Replacement Cache (ARC)
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	echo "usage: $0" 1>&2
+	echo "Print statistics about ZFS's Adaptive Replacement Cache (ARC)." 1>&2
+	exit 1
+fi
+
+arcstats="/proc/spl/kstat/zfs/arcstats"
+if [ ! -r "$arcstats" ]; then
+	echo "$0: $arcstats not found or not readable" 1>&2
+	exit 1
+fi
+
+awk '
+/^c / {
+	print "ZFS ARC target size (" $1 "): " $3 / 1048576 " MB"
+}
+/^c_min / {
+	print "ZFS ARC minimum size (" $1 "): " $3 / 1048576 " MB"
+}
+/^c_max / {
+	print "ZFS ARC maximum size (" $1 "): " $3 / 1048576 " MB"
+}
+/^size / {
+	print "ZFS ARC current size (" $1 "): " $3 / 1048576 " MB"
+}
+' <"$arcstats"

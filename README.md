@@ -2,6 +2,8 @@
 
 Utility scripts for Unix(-like) operating systems.
 
+## Index
+
 Portable:
 
 - [72](72): `fmt(1)` wrapper to rewrap text at line width 72.
@@ -44,6 +46,9 @@ Portable:
 Linux-specific:
 
 - [cputemp](linux/cputemp): prints CPU temperature
+- [zarc](linux/zarc): prints [ZFS][zfs] ARC statistics
+
+[zfs]: https://openzfs.org/
 
 [install.sh](install.sh) creates symbolic links in `$HOME/bin` for the scripts
 in this repository.
