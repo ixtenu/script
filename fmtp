@@ -45,7 +45,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # first token on first line is taken as the prefix
-prefix=`sed 1q "$tmpf" | awk '{ print $1 }'`
+prefix=$(sed 1q "$tmpf" | awk '{ print $1 }')
 if [ $? -ne 0 ]; then
 	ev=$?
 	echo "$0: error reading first line of $tmpf, stopping" 2>&1
@@ -72,7 +72,7 @@ if [ $? -eq 0 ]; then
 	# e.g., two spaces after a period may become a tab.  Convert those tabs
 	# back into spaces; then if (and only if) the line was indented with
 	# tabs, convert the leading indentation back into tabs.
-	ichar=`sed 1q "$tmpf" | $sed 's/\(.\).*/\1/'`
+	ichar=$(sed 1q "$tmpf" | $sed 's/\(.\).*/\1/')
 	if [ $? -ne 0 ]; then
 		ev=$?
 		echo "$0: error reading first character of $tmpf, stopping" 2>&1
@@ -88,9 +88,9 @@ if [ $? -eq 0 ]; then
 else
 	# BSD fmt(1) has no --prefix, so the prefix must be removed
 	# and re-added
-	indent=`sed 1q "$tmpf" | $sed 's/\([ 	]*\).*/\1/'`
-	indentsp=`echo "$indent" | expand`
-	newwidth=`expr $width - ${#prefix} - ${#indentsp}`
+	indent=$(sed 1q "$tmpf" | $sed 's/\([ 	]*\).*/\1/')
+	indentsp=$(echo "$indent" | expand)
+	newwidth=$(expr $width - ${#prefix} - ${#indentsp})
 	if [ $newwidth -lt 0 ]; then
 		echo "$0: combined indent and prefix too long for goal width ($width)" 1>&2
 		echo "$0: indent.len=${#indentsp} prefix=\"$prefix\" prefix.len=${#prefix}" 1>&2
