@@ -72,7 +72,10 @@ $awk '
 /^	*   *[^ ]/ {
 	if (prev_blank) {
 		prev_blank = 0
-		$0 = gensub(/  ([^ ])/, "- \\1", 1)
+		i = match($0, /  [^ ]/)
+		if (i > 0) {
+			$0 = substr($0, 1, i-1) "-" substr($0, i+1)
+		}
 	}
 	print
 	next
