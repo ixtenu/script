@@ -1,0 +1,87 @@
+#!/usr/bin/env sh
+# fmt(1) wrapper script for bulleted lists denoted by '-'
+#
+# Supports bulleted lists which look like this (without the "# " for the shell
+# comment):
+#
+# - paragraph one is one line
+# - paragraph two
+#   is two lines
+# - paragraph three is
+#   three lines (note the continuation lines
+#   are indented by two spaces to line up)
+#
+# Works with nested lists (indented lists within lists).  Bullet points may
+# optionally be separated by a newline character, but this is not required.
+
+width=80
+if [ $# -ge 1 ]; then
+	op=$(echo $1 | awk '{ s=substr($0,1,2); print s; }')
+	if [ "$op" = "-w" ]; then
+		if [ "$1" = "-w" ]; then
+			# space between -w and number
+			shift
+			if [ $# -eq 0 ]; then
+				echo "$0: -w requires an argument" 1>&2
+				exit 1
+			fi
+			width="$1"
+			shift
+		else
+			# no space between -w and number
+			width=$(echo $1 | awk '{ s=substr($0,3); print s; }')
+			shift
+		fi
+	fi
+fi
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	echo "usage: $0 width" 1>&2
+	exit 1
+fi
+
+# plan9port's sed(1) and awk(1) aren't compatible with this script, so don't
+# use them even if $PLAN9/bin is at the front of the path
+sed=$(no9 which sed)
+awk=$(no9 which awk)
+
+# newline for use in sed pattern
+nl='
+'
+
+# Step 1: Replace the "- " by "\n  ".  The newline is so fmt(1) will treat
+# the bullet points as separate paragraphs, even if there is no blank line
+# between them in the original.  The two spaces are so that the text lines
+# up correctly.
+#
+# Step 2: Pipe the paragraphs through fmt(1).
+#
+# Step 3: Use awk(1) to delete the inserted newlines and change the "  "
+# back to "- ".
+$sed "s/^\([ 	]*\)- /\\${nl}\1  /" | \
+fmtw -w$width | \
+$awk '
+/^$/ {
+	if (prev_blank) {
+		print ""
+	}
+	prev_blank = 1;
+	next
+}
+/^	*   *[^ ]/ {
+	if (prev_blank) {
+		prev_blank = 0
+		$0 = gensub(/  ([^ ])/, "- \\1", 1)
+	}
+	print
+	next
+}
+{
+	if (prev_blank) {
+		prev_blank = 0
+		print ""
+	}
+	print
+}
+'
