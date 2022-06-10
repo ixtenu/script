@@ -9,15 +9,18 @@ if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; 
 fi
 
 usage() {
-	echo "usage: $0 [-w width]" 1>&$1
+	echo "usage: $0 [-w width] [-p prefix]" 1>&$1
 	echo "Wrap prefixed text at given column width (default 80)." 1>&$1
+	echo "If prefix is unspecified, auto-detection is attempted." 1>&$1
 	exit $(($1 - 1))
 }
 
 width=80
-while getopts w:h name; do
+prefix=""
+while getopts w:p:h name; do
 	case $name in
 	w) width=$OPTARG;;
+	p) prefix=$OPTARG;;
 	h) usage 1;;
 	?) usage 2;;
 	esac
@@ -40,24 +43,27 @@ trap 'rm -f -- "$tmpf"' EXIT
 cat >"$tmpf"
 if [ $? -ne 0 ]; then
 	ev=$?
-	echo "$0: error writing stdin into $file, stopping" 2>&1
+	echo "$0: error writing stdin into $tmpf, stopping" 2>&1
 	exit $ev
 fi
 
-# first token on first line is taken as the prefix
-prefix="$(sed 1q "$tmpf" | awk '{ print $1 }')"
-if [ $? -ne 0 ]; then
-	ev=$?
-	echo "$0: error reading first line of $tmpf, stopping" 2>&1
-	exit $ev
-fi
+# if prefix is unspecified, try to auto-detect it
+if [ "$prefix" = "" ]; then
+	# first token on first line is taken as the prefix
+	prefix="$(sed 1q "$tmpf" | awk '{ print $1 }')"
+	if [ $? -ne 0 ]; then
+		ev=$?
+		echo "$0: error reading first line of $tmpf, stopping" 2>&1
+		exit $ev
+	fi
 
-# Doxygen comments are "///" and batch file comments are "rem",
-# so allow prefixes <= 3 bytes; longer prefixes could be allowed
-# if there is a need.
-if [ ${#prefix} -gt 3 ]; then
-	echo "$0: prefix \"$prefix\" is longer than expected" 1>&2
-	exit 1
+	# Sanity check the prefix length.  Doxygen comments are "///" and
+	# batch file comments are "rem", so allow prefixes <= 3 bytes; longer
+	# prefixes could be allowed if there is a need.
+	if [ ${#prefix} -gt 3 ]; then
+		echo "$0: prefix \"$prefix\" is longer than expected" 1>&2
+		exit 1
+	fi
 fi
 
 # plan9port's fmt(1) and sed(1) aren't compatible with this script, so don't

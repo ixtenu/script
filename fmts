@@ -1,0 +1,57 @@
+#!/usr/bin/sh
+# fmt(1) wrapper with smarts for prefixed text and bulleted lists
+set -u
+
+# dash doesn't (yet) support pipefail
+if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+	set -o pipefail
+fi
+
+usage() {
+	echo "usage: $0 [-w width]" 1>&$1
+	echo "Smart wrap text at given column width (default 80)." 1>&$1
+	exit $(($1 - 1))
+}
+
+# create a temporary file which is deleted on exit
+tmpf="$(mktemp)"
+if [ $? -ne 0 ]; then
+	exit $?
+fi
+trap 'rm -f -- "$tmpf"' EXIT
+
+# dump stdin to the temporary file
+cat >"$tmpf"
+if [ $? -ne 0 ]; then
+	ev=$?
+	echo "$0: error writing stdin into $tmpf, stopping" 2>&1
+	exit $ev
+fi
+
+# extract the first non-whitespace character on the first line
+token="$(sed 1q "$tmpf" | awk '{ print $1 }')"
+if [ $? -ne 0 ]; then
+	ev=$?
+	echo "$0: error reading first line of $tmpf, stopping" 2>&1
+	exit $ev
+fi
+
+# does this look like a bulleted list?
+for t in '-' '*' '+'; do
+	if [ "$token" = "$t" ]; then
+		cat "$tmpf" | fmtbl -b"$t" "$@"
+		exit $?
+	fi
+done
+
+# does this look like a markdown quotation or a line comment?
+tokenlc=$(echo "$token" | tr '[A-Z]' '[a-z]')
+for t in '>' '//' '///' '#' '##' 'rem' '%' '!'; do
+	if [ "$tokenlc" = "$t" ]; then
+		cat "$tmpf" | fmtp -p"$token" "$@"
+		exit $?
+	fi
+done
+
+# normal text
+cat "$tmpf" | fmtw "$@"

@@ -6,37 +6,36 @@ Utility scripts for Unix(-like) operating systems.
 
 Portable:
 
-- [72](72): `fmt(1)` wrapper to rewrap text at line width 72.
-- [72bl](72bl): `fmt(1)` wrapper to rewrap bulleted lists at line width 72.
-- [80](80): `fmt(1)` wrapper to rewrap text at line width 80.
-- [80bl](80bl): `fmt(1)` wrapper to rewrap bulleted lists at line width 80.
-- [80p](80p): `fmt(1)` wrapper to rewrap text at line width 80 while preserving
-  a prefix (such as a comment token, e.g., `//` or `#`).
-- [c](c): `sed(1)` wrapper to comment-out lines.
-- [et](et): `expand(1)` wrapper; accepts optional file name arguments.
-- [f](f): search for file names with [fd][ghfd] or, if that's not available,
-  with `find(1)`.
-- Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git commit`),
-  [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`), [gits](gits)
-  (`git status`).
-- [fmtbl](fmtbl): `fmt(1)` wrapper to rewrap bulleted lists at a given line
-  width.
-- [fmtp](fmtp): `fmt(1)` wrapper to rewrap text at a given line width while
-  preserving a prefix (such as a comment token, e.g., `//` or `#`).
 - [fmtw](fmtw): `fmt(1)` wrapper to rewrap text at a given line width.
+- [fmtp](fmtp): `fmt(1)` wrapper to rewrap text at a given line width while
+  preserving a prefix (such as a comment token, e.g., `//` or `#`).  [80p](80p)
+  is an alias for `fmtp -w80`.
+- [fmtbl](fmtbl): `fmt(1)` wrapper to rewrap bulleted lists at a given line
+  width.  [72bl](72bl) and [80bl](80bl) are aliases for `fmtbl -w72` and `fmtbl
+  -w80`, respectively.
+- [fmts](fmts): a "smart" wrapper around `fmtw`, `fmtp`, and `fmtbl`, which
+  examines the input text and picks which script to use.  [72](72) and [80](80)
+  are aliases for `fmts -w72` and `fmts -w80`, respectively.
+- [et](et): `expand(1)` wrapper; accepts optional file name arguments.
+- [ut](ut): `unexpand(1)` wrapper; accepts optional file name arguments.
+- [c](c): `sed(1)` wrapper to comment-out lines.
+- [uc](uc): `sed(1)` wrapper to uncomment-out lines.
 - [i](i): indent text by one tab (default) or four spaces (with `-e`) or an
   arbitrary number of spaces (with `-E n`).
-- [mkexe](mkexe): `touch(1)` and `chmod +x` paths in one command.
-- [no9](no9): remove `$PLAN9/bin` (see [plan9port][p9p]) from the `$PATH`, if
-  present, and run a command.
-- [s](s): recursively search file contents with [rg][ghrg], [ag][ghag], or
-  `grep(1)`, in that order of preference.
-- [tag](tag): `readtag(1)` wrapper to convert a tag into `file:line`.
-- [uc](uc): `sed(1)` wrapper to uncomment-out lines.
 - [ui](ui): unindent text by one level (by default, four spaces and/or one tab,
   which works for either, as long as tabs don't follow spaces; also implements
   `-e` and `-E n` options to unindent spaces only).
-- [ut](ut): `unexpand(1)` wrapper; accepts optional file name arguments.
+- [f](f): search for file names with [fd][ghfd] or, if that's not available,
+  with `find(1)`.
+- [s](s): recursively search file contents with [rg][ghrg], [ag][ghag], or
+  `grep(1)`, in that order of preference.
+- [tag](tag): `readtag(1)` wrapper to convert a tag into `file:line`.
+- [mkexe](mkexe): `touch(1)` and `chmod +x` paths in one command.
+- [no9](no9): remove `$PLAN9/bin` (see [plan9port][p9p]) from the `$PATH`, if
+  present, and run a command.
+- Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git
+  commit`), [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`),
+  [gits](gits) (`git status`).
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
