@@ -10,7 +10,7 @@ usage() {
 }
 
 tabw=4
-while getopts ht: name; do
+while getopts t:h name; do
 	case $name in
 	t) tabw=$OPTARG;;
 	h) usage 1;;
@@ -30,5 +30,12 @@ trap 'rm -f -- "$tmpf"' EXIT
 
 for f in "$@"; do
 	expand -t$tabw <"$f" >"$tmpf"
-	cat "$tmpf" >"$f"
+
+	# skip rewriting the file if nothing changed
+	if ! cmp "$tmpf" "$f" 2>&1 >/dev/null; then
+		# using cat (even though it's not atomic) to rewrite the
+		# file so that the original metadata (e.g., permissions) are
+		# preserved
+		cat "$tmpf" >"$f"
+	fi
 done
