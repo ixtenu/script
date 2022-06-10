@@ -3,6 +3,7 @@
 
 if [ $# != 1 ]; then
 	echo "usage: $0 symbol_name" 1>&2
+	echo "Print filename:lineno for symbol_name in tags file." 1>&2
 	exit 1
 fi
 

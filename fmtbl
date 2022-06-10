@@ -14,31 +14,25 @@
 # Works with nested lists (indented lists within lists).  Bullet points may
 # optionally be separated by a newline character, but this is not required.
 
+usage() {
+	echo "usage: $0 [-w width]" 1>&$1
+	echo "Wrap bulleted lists at given column width (default 80)." 1>&$1
+	exit $(($1 - 1))
+}
+
 width=80
-if [ $# -ge 1 ]; then
-	op=$(echo $1 | awk '{ s=substr($0,1,2); print s; }')
-	if [ "$op" = "-w" ]; then
-		if [ "$1" = "-w" ]; then
-			# space between -w and number
-			shift
-			if [ $# -eq 0 ]; then
-				echo "$0: -w requires an argument" 1>&2
-				exit 1
-			fi
-			width="$1"
-			shift
-		else
-			# no space between -w and number
-			width=$(echo $1 | awk '{ s=substr($0,3); print s; }')
-			shift
-		fi
-	fi
-fi
+while getopts hw: name; do
+	case $name in
+	w) width=$OPTARG;;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $(($OPTIND - 1))
 
 if [ $# -ne 0 ]; then
 	echo "$0: unexpected arguments: $@" 1>&2
-	echo "usage: $0 width" 1>&2
-	exit 1
+	usage 2
 fi
 
 # plan9port's sed(1) and awk(1) aren't compatible with this script, so don't

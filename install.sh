@@ -1,9 +1,16 @@
 #!/usr/bin/env sh
 
 outdir=$HOME/bin
-mkdir -p "$outdir"
-
 scriptdir="$(cd -- "$(dirname "$0")" 2>&1 >/dev/null && pwd -P)"
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	echo "usage: $0" 1>&2
+	echo "Create symlinks in $outdir for shell scripts in $scriptdir." 1>&2
+	exit 1
+fi
+
+mkdir -p "$outdir"
 cd "$scriptdir"
 
 installfile() {

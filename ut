@@ -1,26 +1,23 @@
 #!/usr/bin/env sh
 # unexpand(1) wrapper script
 
+usage() {
+	echo "usage: $0 [-t tab_stop] [file ...]" 1>&$1
+	echo "Unexpand spaces to tabs assuming tab stops every tab_stop (default 4) columns." 1>&$1
+	echo "If files are specified, unexpands tabs in them; otherwise reads from stdin and" 1>&$1
+	echo "writes to stdout." 1>&$1
+	exit $(($1 - 1))
+}
+
 tabw=4
-if [ $# -ge 1 ]; then
-	op=$(echo $1 | awk '{ s=substr($0,1,2); print s; }')
-	if [ "$op" = "-t" ]; then
-		if [ "$1" = "-t" ]; then
-			# space between -t and number
-			shift
-			if [ $# -eq 0 ]; then
-				echo "$0: -t requires an argument" 1>&2
-				exit 1
-			fi
-			tabw="$1"
-			shift
-		else
-			# no space between -t and number
-			tabw=$(echo $1 | awk '{ s=substr($0,3); print s; }')
-			shift
-		fi
-	fi
-fi
+while getopts ht: name; do
+	case $name in
+	t) tabw=$OPTARG;;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $(($OPTIND - 1))
 
 # all unexpand(1) implementations except OpenBSD's support -t
 targ="-t$tabw"
@@ -42,6 +39,6 @@ tmpf=$(mktemp)
 trap 'rm -f -- "$tmpf"' EXIT
 
 for f in "$@"; do
-	unexpand $targ < "$f" > "$tmpf"
-	cat "$tmpf" > "$f"
+	unexpand $targ <"$f" >"$tmpf"
+	cat "$tmpf" >"$f"
 done

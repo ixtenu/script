@@ -14,17 +14,16 @@ Portable:
 - [et](et): `expand(1)` wrapper; accepts optional file name arguments.
 - [f](f): search for file names with [fd][ghfd] or, if that's not available,
   with `find(1)`.
-- [gita](gita): `git add` alias.
-- [gitc](gitc): `git commit` alias.
-- [gitcp](gitcp): `git cherry-pick` alias.
-- [gitd](gitd): `git diff` alias.
-- [gits](gits): `git status` alias.
+- Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git commit`),
+  [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`), [gits](gits)
+  (`git status`).
 - [fmtbl](fmtbl): `fmt(1)` wrapper to rewrap bulleted lists at a given line
   width.
 - [fmtp](fmtp): `fmt(1)` wrapper to rewrap text at a given line width while
   preserving a prefix (such as a comment token, e.g., `//` or `#`).
 - [fmtw](fmtw): `fmt(1)` wrapper to rewrap text at a given line width.
-- [i](i): indent text by one tab (default) or four spaces (with `-e`).
+- [i](i): indent text by one tab (default) or four spaces (with `-e`) or an
+  arbitrary number of spaces (with `-E n`).
 - [mkexe](mkexe): `touch(1)` and `chmod +x` paths in one command.
 - [no9](no9): remove `$PLAN9/bin` (see [plan9port][p9p]) from the `$PATH`, if
   present, and run a command.
@@ -32,8 +31,9 @@ Portable:
   `grep(1)`, in that order of preference.
 - [tag](tag): `readtag(1)` wrapper to convert a tag into `file:line`.
 - [uc](uc): `sed(1)` wrapper to uncomment-out lines.
-- [ui](ui): unindent text by one level (either one tab or four spaces: works
-  for either, as long as tabs don't follow spaces).
+- [ui](ui): unindent text by one level (by default, four spaces and/or one tab,
+  which works for either, as long as tabs don't follow spaces; also implements
+  `-e` and `-E n` options to unindent spaces only).
 - [ut](ut): `unexpand(1)` wrapper; accepts optional file name arguments.
 
 [ghfd]: https://github.com/sharkdp/fd
