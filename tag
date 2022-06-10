@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # readtags(1) (ctags) wrapper script
+set -u
 
 if [ $# != 1 ]; then
 	echo "usage: $0 symbol_name" 1>&2

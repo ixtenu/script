@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # make executable files
+set -u
 
 if [ $# -eq 0 ]; then
 	echo "usage: $0 [files ...]" 2>&1

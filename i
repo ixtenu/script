@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # add one level of indentation
+set -u
 
 usage() {
 	echo "usage: $0 [-e] [-E n]" 1>&$1

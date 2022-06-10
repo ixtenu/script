@@ -21,6 +21,7 @@
 # '-' is the default.
 #
 # A space between the bullet character and subsequent text is required.
+set -u
 
 usage() {
 	echo "usage: $0 [-w width] [-b bullet_char]" 1>&$1

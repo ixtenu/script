@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # uncomment-out lines
+set -u
 
 token='//'
 

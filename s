@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # recursive file search
+set -u
 
 if command -v rg 2>&1 >/dev/null; then
 	rg --vimgrep "$@"

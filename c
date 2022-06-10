@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # comment-out lines
+set -u
 
 token='//'
 
