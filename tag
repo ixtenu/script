@@ -2,6 +2,11 @@
 # readtags(1) (ctags) wrapper script
 set -u
 
+# dash doesn't (yet) support pipefail
+if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+	set -o pipefail
+fi
+
 if [ $# != 1 ]; then
 	echo "usage: $0 symbol_name" 1>&2
 	echo "Print filename:lineno for symbol_name in tags file." 1>&2
@@ -20,6 +25,8 @@ while [ ! -f tags ]; do
 	fi
 	cd ..
 done
+
+set -e
 
 file=`readtags -t tags $1 | awk -F"\t" '{print $2}'`
 if [ "$file" = "" ]; then

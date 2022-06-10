@@ -2,6 +2,11 @@
 # remove one level of indentation
 set -u
 
+# dash doesn't (yet) support pipefail
+if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+	set -o pipefail
+fi
+
 usage() {
 	echo "usage: $0 [-e] [-E n]" 1>&$1
 	echo "Remove indentation (by default, four spaces and/or a tab) from stdin.  With -e," 1>&$1

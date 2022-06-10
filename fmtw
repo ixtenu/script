@@ -2,6 +2,11 @@
 # fmt(1) wrapper script
 set -u
 
+# dash doesn't (yet) support pipefail
+if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+	set -o pipefail
+fi
+
 usage() {
 	echo "usage: $0 [-w width]" 1>&$1
 	echo "Wrap text at given column width (default 80)." 1>&$1
@@ -39,6 +44,11 @@ if [ $? -eq 0 ]; then
 	trap 'rm -f -- "$tmpf"' EXIT
 	cat >"$tmpf"
 	ichar=`sed 1q "$tmpf" | $sed 's/\(.\).*/\1/'`
+	if [ $? -ne 0 ]; then
+		ev=$?
+		echo "$0: error reading first character of $tmpf, stopping" 2>&1
+		exit $ev
+	fi
 	postexpand=cat
 	if [ "$ichar" = "	" ]; then
 		postexpand="unexpand --first-only"

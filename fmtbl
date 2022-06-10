@@ -23,6 +23,11 @@
 # A space between the bullet character and subsequent text is required.
 set -u
 
+# dash doesn't (yet) support pipefail
+if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+	set -o pipefail
+fi
+
 usage() {
 	echo "usage: $0 [-w width] [-b bullet_char]" 1>&$1
 	echo "Wrap bulleted lists at given column width (default 80)." 1>&$1
@@ -71,6 +76,11 @@ if [ $bopt -eq 0 ]; then
 	# first non-whitespace character on first line is taken as the bullet
 	# character
 	bullet=$(sed 1q "$file" | awk '{ print $1 }')
+	if [ $? -ne 0 ]; then
+		ev=$?
+		echo "$0: error reading first line of $file, stopping" 2>&1
+		exit $ev
+	fi
 fi
 
 # these characters seem to work; others (like "o") may cause regex failures
