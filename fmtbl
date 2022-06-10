@@ -54,10 +54,18 @@ file=
 if [ $bopt -eq 0 ]; then
 	# create a temporary file which is deleted on exit
 	file=$(mktemp)
+	if [ $? -ne 0 ]; then
+		exit $?
+	fi
 	trap 'rm -f -- "$file"' EXIT
 
 	# dump stdin to the temporary file
 	cat >"$file"
+	if [ $? -ne 0 ]; then
+		ev=$?
+		echo "$0: error writing stdin into $file, stopping" 2>&1
+		exit $ev
+	fi
 
 	# first non-whitespace character on first line is taken as the bullet
 	# character

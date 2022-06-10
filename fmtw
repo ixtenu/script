@@ -8,7 +8,7 @@ usage() {
 }
 
 width=80
-while getopts hw: name; do
+while getopts w:h name; do
 	case $name in
 	w) width=$OPTARG;;
 	h) usage 1;;
@@ -42,7 +42,6 @@ if [ $? -eq 0 ]; then
 	if [ "$ichar" = "	" ]; then
 		postexpand="unexpand --first-only"
 	fi
-	# GNU coreutils fmt(1)
 	$fmt --uniform-spacing --width=$width --goal=$width <"$tmpf" | \
 		expand | $postexpand
 else

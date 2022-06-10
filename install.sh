@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -eu
 
 outdir=$HOME/bin
 scriptdir="$(cd -- "$(dirname "$0")" 2>&1 >/dev/null && pwd -P)"

@@ -9,7 +9,7 @@ usage() {
 }
 
 width=80
-while getopts hw: name; do
+while getopts w:h name; do
 	case $name in
 	w) width=$OPTARG;;
 	h) usage 1;;
@@ -25,10 +25,18 @@ fi
 
 # create a temporary file which is deleted on exit
 tmpf=$(mktemp)
+if [ $? -ne 0 ]; then
+	exit $?
+fi
 trap 'rm -f -- "$tmpf"' EXIT
 
 # dump stdin to the temporary file
 cat >"$tmpf"
+if [ $? -ne 0 ]; then
+	ev=$?
+	echo "$0: error writing stdin into $file, stopping" 2>&1
+	exit $ev
+fi
 
 # first token on first line is taken as the prefix
 prefix=`sed 1q "$tmpf" | awk '{ print $1 }'`
