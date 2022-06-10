@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
-# fmt(1) wrapper script for '-' bulleted lists at column 72
+# fmt(1) wrapper script for bulleted lists at column 72
 
 fmtbl -w72 "$@"

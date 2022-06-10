@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
-# fmt(1) wrapper script for bulleted lists denoted by '-'
+# fmt(1) wrapper script for bulleted lists
 #
-# Supports bulleted lists which look like this (without the "# " for the shell
-# comment):
+# Supports reflowing text in bulleted lists which look like this (without
+# the "# " for the shell script comment):
 #
 # - paragraph one is one line
 # - paragraph two
@@ -11,19 +11,32 @@
 #   three lines (note the continuation lines
 #   are indented by two spaces to line up)
 #
-# Works with nested lists (indented lists within lists).  Bullet points may
-# optionally be separated by a newline character, but this is not required.
+# Nested lists (indented lists within lists) are supported.  Blank lines between
+# bullet points will work but are not required.
+#
+# In addition to '-', '*' and '+' are also valid bullet characters.  Only one
+# bullet character is supported at a time: no mixing.  If the bullet character
+# is not explicitly specified, an attempt is made to detect it from the first
+# non-whitespace character on the first line of stdin; if auto-detection fails,
+# '-' is the default.
+#
+# A space between the bullet character and subsequent text is required.
 
 usage() {
-	echo "usage: $0 [-w width]" 1>&$1
+	echo "usage: $0 [-w width] [-b bullet_char]" 1>&$1
 	echo "Wrap bulleted lists at given column width (default 80)." 1>&$1
+	echo "The bullet_char may be '-', '*', or '+'.  If unspecified, an attempt is made to" 1>&$1
+	echo "auto-detect it; if that fails, '-' is used by default." 1>&$1
 	exit $(($1 - 1))
 }
 
 width=80
-while getopts hw: name; do
+bullet="-"
+bopt=0
+while getopts w:b:h name; do
 	case $name in
 	w) width=$OPTARG;;
+	b) bullet=$OPTARG; bopt=1;;
 	h) usage 1;;
 	?) usage 2;;
 	esac
@@ -35,6 +48,35 @@ if [ $# -ne 0 ]; then
 	usage 2
 fi
 
+# can read directly from stdin when -b is specified
+file=
+
+if [ $bopt -eq 0 ]; then
+	# create a temporary file which is deleted on exit
+	file=$(mktemp)
+	trap 'rm -f -- "$file"' EXIT
+
+	# dump stdin to the temporary file
+	cat >"$file"
+
+	# first non-whitespace character on first line is taken as the bullet
+	# character
+	bullet=$(sed 1q "$file" | awk '{ print $1 }')
+fi
+
+# these characters seem to work; others (like "o") may cause regex failures
+if [ "$bullet" != "-" -a "$bullet" != "*" -a "$bullet" != "+" ]; then
+	if [ $bopt -eq 0 ]; then
+		# if the auto-detected bullet character doesn't look like one of
+		# the supported bullet characters, assume that stdin didn't
+		# start on a bullet and fall back on "-"
+		bullet="-"
+	else
+		echo "$0: unsupported bullet character $bullet" 1>&2
+		usage 2
+	fi
+fi
+
 # plan9port's sed(1) and awk(1) aren't compatible with this script, so don't
 # use them even if $PLAN9/bin is at the front of the path
 sed=$(no9 which sed)
@@ -44,18 +86,19 @@ awk=$(no9 which awk)
 nl='
 '
 
-# Step 1: Replace the "- " by "\n  ".  The newline is so fmt(1) will treat
-# the bullet points as separate paragraphs, even if there is no blank line
-# between them in the original.  The two spaces are so that the text lines
-# up correctly.
+# Step 1: Replace the "- " (bullet character and space) by "\n  ".  The newline
+# is so fmt(1) will treat the bullet points as separate paragraphs, even if
+# there is no blank line between them in the original.  The two spaces are so
+# that the text lines up correctly.
 #
 # Step 2: Pipe the paragraphs through fmt(1).
 #
 # Step 3: Use awk(1) to delete the inserted newlines and change the "  "
-# back to "- ".
-$sed "s/^\([ 	]*\)- /\\${nl}\1  /" | \
+# back to "- " (bullet character and space).
+cat $file | \
+$sed "s/^\([ 	]*\)\\$bullet /\\${nl}\1  /" | \
 fmtw -w$width | \
-$awk '
+$awk -v bullet="$bullet" '
 /^$/ {
 	if (prev_blank) {
 		print ""
@@ -68,7 +111,7 @@ $awk '
 		prev_blank = 0
 		i = match($0, /  [^ ]/)
 		if (i > 0) {
-			$0 = substr($0, 1, i-1) "-" substr($0, i+1)
+			$0 = substr($0, 1, i-1) bullet substr($0, i+1)
 		}
 	}
 	print
