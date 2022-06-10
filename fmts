@@ -7,12 +7,6 @@ if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; 
 	set -o pipefail
 fi
 
-usage() {
-	echo "usage: $0 [-w width]" 1>&$1
-	echo "Smart wrap text at given column width (default 80)." 1>&$1
-	exit $(($1 - 1))
-}
-
 # create a temporary file which is deleted on exit
 tmpf="$(mktemp)"
 if [ $? -ne 0 ]; then
