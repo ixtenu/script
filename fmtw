@@ -30,8 +30,8 @@ fi
 
 # plan9port's fmt(1) and sed(1) aren't compatible with this script, so don't
 # use them even if $PLAN9/bin is at the front of the path
-fmt=$(no9 which fmt)
-sed=$(no9 which sed)
+fmt="$(no9 which fmt)"
+sed="$(no9 which sed)"
 
 $fmt --version 2>/dev/null | grep GNU >/dev/null
 if [ $? -eq 0 ]; then
@@ -40,10 +40,10 @@ if [ $? -eq 0 ]; then
 	# e.g., two spaces after a period may become a tab.  Convert those tabs
 	# back into spaces; then if (and only if) the line was indented with
 	# tabs, convert the leading indentation back into tabs.
-	tmpf=$(mktemp)
+	tmpf="$(mktemp)"
 	trap 'rm -f -- "$tmpf"' EXIT
 	cat >"$tmpf"
-	ichar=$(sed 1q "$tmpf" | $sed 's/\(.\).*/\1/')
+	ichar="$(sed 1q "$tmpf" | $sed 's/\(.\).*/\1/')"
 	if [ $? -ne 0 ]; then
 		ev=$?
 		echo "$0: error reading first character of $tmpf, stopping" 2>&1

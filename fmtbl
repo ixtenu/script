@@ -59,7 +59,7 @@ file=
 
 if [ $bopt -eq 0 ]; then
 	# create a temporary file which is deleted on exit
-	file=$(mktemp)
+	file="$(mktemp)"
 	if [ $? -ne 0 ]; then
 		exit $?
 	fi
@@ -75,7 +75,7 @@ if [ $bopt -eq 0 ]; then
 
 	# first non-whitespace character on first line is taken as the bullet
 	# character
-	bullet=$(sed 1q "$file" | awk '{ print $1 }')
+	bullet="$(sed 1q "$file" | awk '{ print $1 }')"
 	if [ $? -ne 0 ]; then
 		ev=$?
 		echo "$0: error reading first line of $file, stopping" 2>&1
@@ -98,8 +98,8 @@ fi
 
 # plan9port's sed(1) and awk(1) aren't compatible with this script, so don't
 # use them even if $PLAN9/bin is at the front of the path
-sed=$(no9 which sed)
-awk=$(no9 which awk)
+sed="$(no9 which sed)"
+awk="$(no9 which awk)"
 
 # newline for use in sed pattern
 nl='
