@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+set -e
+
+if ! command -v pandoc 2>&1 >/dev/null; then
+	echo "error: pandoc not found in PATH, is it installed?" 1>&2
+	exit 1
+fi
+
+usage() {
+	echo "usage: $0 [-o] file" 1>&$1
+	echo "Convert a Markdown file to HTML.  With -o, also open the HTML file." 1>&$1
+	exit $(($1 - 1))
+}
+
+mdfile=
+open=0
+while getopts oh name; do
+	case $name in
+	o) open=1;;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+if [ $# -eq 1 ]; then
+	mdfile="$1"
+	shift
+elif [ $# -eq 0  ]; then
+	if [ "$winid" != "" ]; then
+		# if called without a file name within Acme, assume current window
+		echo -n put | 9p write acme/$winid/ctl
+		mdfile="$samfile"
+	else
+		echo "$0: no file name provided" 1>&2
+		usage 2
+	fi
+else
+	echo "$0: too many arguments: $@" 1>&2
+	usage 2
+fi
+
+htmlfile="$(echo "$mdfile" | sed 's/.md$//' | sed 's/.markdown$//').html"
+
+pandoc \
+	--from=markdown \
+	--to=html5 \
+	--standalone \
+	--preserve-tabs \
+	--eol=lf \
+	--toc \
+	--shift-heading-level-by=1 \
+	--metadata=document-css:false \
+	--highlight-style=monochrome \
+	"$mdfile" --output="$htmlfile"
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+
+if [ $open -ne 0 ]; then
+	if command -v xdg-open 2>&1 >/dev/null; then
+		xdg-open "$htmlfile"
+	elif command -v open 2>&1 >/dev/null; then
+		open "$htmlfile"
+	else
+		echo "$0: don't know how to open $htmlfile" 1>&2
+		exit 1
+	fi
+fi
