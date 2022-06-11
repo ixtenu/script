@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env sh
 # fmt(1) wrapper with smarts for prefixed text and bulleted lists
 set -u
 
