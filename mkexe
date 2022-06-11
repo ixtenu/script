@@ -13,7 +13,7 @@ for f in "$@"; do
 	if [ $? -ne 0 ]; then
 		echo "$0: failed to touch $f, continuing" 2>&1
 	else
-		chmod +x -- "$f"
+		chmod +x "$f"
 		if [ $? -ne 0 ]; then
 			echo "$0: failed to chmod +x $f, continuing" 2>&1
 		fi
