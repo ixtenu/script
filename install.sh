@@ -20,7 +20,7 @@ mkdir -p "$outdir"
 cd "$scriptdir"
 
 installfile() {
-	fp="$(realpath $1)"
+	fp="$(readlink -f $1)"
 	fn="$(basename $1)"
 	lp="$outdir"/"$fn"
 	if [ -e "$lp" ]; then
