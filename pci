@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+# cindex (codesearch) wrapper script
+# This script is intended for a project-specific codesearch index.
+set -eu
+
+usage() {
+	echo "usage: $0 [-r] [directory]" 1>&$1
+	echo "Create codesearch index of directory at directory/.csearchindex." 1>&$1
+	echo "If directory is unspecified, and PWD or an ancestor directory includes a .git" 1>&$1
+	echo "dirent, uses that directory." 1>&$1
+	echo "With -r, resets (recreates) the .csearchindex." 1>&$1
+	exit $(($1 - 1))
+}
+
+opts=
+while getopts rh name; do
+	case $name in
+	r) opts="$opts -reset";;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+dir=
+if [ $# -gt 0 ]; then
+	dir="$1"
+	shift
+fi
+
+if [ $# -ne 0 ]; then
+	echo "$0: unexpected arguments: $@" 1>&2
+	usage 2
+fi
+
+if [ -z "$dir" ]; then
+	# To prevent accidentally indexing a large directory (like $HOME) when
+	# this script is run without arguments, only allow running without
+	# arguments in Git repositories.
+	while [ ! -e .git ]; do
+		if [ "$PWD" = "/" ]; then
+			echo "$0: directory unspecified and PWD is not within a Git repository." 1>&2
+			usage 2
+		fi
+		cd ..
+	done
+	dir="$(readlink -f $(pwd))"
+elif [ ! -d "$dir" ]; then
+	echo "$0: $dir is not an existing directory" 1>&2
+	usage 2
+fi
+
+cd "$dir"
+export CSEARCHINDEX="$dir/.csearchindex"
+
+cindex $opts "$dir"

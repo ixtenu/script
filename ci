@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+# cindex (codesearch) wrapper script
+# This script is intended for a system-wide codesearch index.  Since that
+# is how codesearch is meant to work, it's a fairly thin wrapper which only
+# provides a shorter name and options.
+set -eu
+
+usage() {
+	echo "usage: $0 [-rl] [directories...]" 1>&$1
+	echo "Create codesearch index of directories at $HOME/.csearchindex." 1>&$1
+	echo "If directory is unspecified, refreshes already-indexed directories." 1>&$1
+	echo "With -r resets (recreates) the .csearchindex.  With -l, lists indexed directories." 1>&$1
+	exit $(($1 - 1))
+}
+
+opts=
+while getopts rlh name; do
+	case $name in
+	r) opts="$opts -reset";;
+	l) opts="$opts -list";;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+cindex $opts "$@"
