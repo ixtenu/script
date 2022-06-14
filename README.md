@@ -32,7 +32,11 @@ Portable:
 - [ci](ci) and [cs](cs) are thin wrapper scripts for the `cindex` and `csearch`
   programs from [codesearch][cs].  [pci](pci) and [pcs](psc) are variant
   wrapper scripts for using a project-specific index file.
-- [tag](tag): `readtag(1)` wrapper to convert a tag into `file:line`.
+- [mktag](mktag) and [tag](tag) are [universal-ctag][uct] wrapper scripts.
+  `mktag` generates the `tags` file: if PWD is within a Git repository, it
+  automatically finds the top-level directory in the repository and runs `ctags
+  -R` from there.  `tag` is a `readtag(1)` wrapper which converts the given tag
+  into `filename:lineno`.
 - [mkexe](mkexe): `touch(1)` and `chmod +x` paths in one command.
 - [no9](no9): remove `$PLAN9/bin` (see [plan9port][p9p]) from the `$PATH`, if
   present, and run a command.
@@ -47,6 +51,7 @@ Portable:
 [p9p]: https://9fans.github.io/plan9port/
 [ghrg]: https://github.com/BurntSushi/ripgrep
 [cs]: https://github.com/google/codesearch
+[uct]: https://ctags.io/
 [ghag]: https://github.com/ggreer/the_silver_searcher
 [pd]: https://pandoc.org/
 
