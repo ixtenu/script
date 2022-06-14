@@ -40,9 +40,9 @@ files=$(echo "$files" | uniq)
 # for each file where the tag is found
 for file in $files; do
 	# ctags stores a pattern (possibly multiple) for each tag: extract it
-	patterns="$(readtags -t tags $1 | grep "^$1	$file" | awk -F"\t" '{print $3}')"
-	# ctags surrounds its patterns with "//", remove that
-	patterns="$(echo "$patterns" | sed 's!^/!!' | sed 's!/$!!')"
+	patterns="$(readtags -t tags $1 | grep "^$1	$file")"
+	patterns=$(echo "$patterns" | sed "s!^$1	$file!!")
+	patterns=$(echo "$patterns" | no9 sed "s!.*/\(.*\)/.*!\1!")
 	# escape characters which have special meaning to grep
 	patterns="$(echo "$patterns" | sed 's!\*!\\*!g')"
 	patterns="$(echo "$patterns" | sed 's!\[!\\[!g')"
