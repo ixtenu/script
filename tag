@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# readtags(1) (ctags) wrapper script
+# readtags(1) (universal-ctags) wrapper script
 set -u
 
 # dash doesn't (yet) support pipefail
@@ -13,8 +13,13 @@ if [ $# != 1 ]; then
 	exit 1
 fi
 
-if ! command -v readtags 2>&1 >/dev/null; then
-	echo "$0: no readtags found in PATH, please install ctags" 1>&2
+readtags=
+if command -v ureadtags 2>&1 >/dev/null; then
+	readtags="ureadtags"
+elif command -v readtags 2>&1 >/dev/null; then
+	readtags="readtags"
+else
+	echo "$0: no readtags found in PATH, please install universal-ctags" 1>&2
 	exit 1
 fi
 
@@ -28,7 +33,7 @@ done
 
 set -e
 
-files="$(readtags -t tags $1 | awk -F"\t" '{print $2}')"
+files="$($readtags -t tags $1 | awk -F"\t" '{print $2}')"
 if [ "$files" = "" ]; then
 	# print nothing when nothing is found
 	exit 0
@@ -40,7 +45,7 @@ files=$(echo "$files" | uniq)
 # for each file where the tag is found
 for file in $files; do
 	# ctags stores a pattern (possibly multiple) for each tag: extract it
-	patterns="$(readtags -t tags $1 | grep "^$1	$file")"
+	patterns="$($readtags -t tags $1 | grep "^$1	$file")"
 	patterns="$(echo "$patterns" | sed "s!^$1	$file!!")"
 	patterns="$(echo "$patterns" | no9 sed "s!.*/\(.*\)/.*!\1!")"
 	# escape characters which have special meaning to grep
