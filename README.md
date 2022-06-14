@@ -38,9 +38,10 @@ Portable:
   present, and run a command.
 - [md2html](md2html): use [pandoc][pd] to convert a Markdown file to HTML and
   optionally open it in a web browser.
-- Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git
-  commit`), [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`),
-  [gits](gits) (`git status`).
+- Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git commit`),
+  [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`), [gitdc](gitdc)
+  (`git diff --cached`), [gitp](gitp) (`git pull`), [git1](git1) `git show`,
+  [gits](gits) (`git status`), [gitu](gitu) (`git push`).
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
