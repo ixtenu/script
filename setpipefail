@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# set -o pipefail if supported by the shell
+# meant to be sourced by other scripts; does nothing useful on its own
+
+# dash doesn't (yet) support pipefail
+if [ "$(uname)" != "Linux" -o "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+	set -o pipefail
+fi

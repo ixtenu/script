@@ -1,10 +1,6 @@
 #!/usr/bin/env sh
 set -eu
-
-# dash doesn't (yet) support pipefail
-if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
-	set -o pipefail
-fi
+command -v setpipefail >/dev/null && . "$(which setpipefail)"
 
 outdir=$HOME/bin
 scriptdir="$(cd -- "$(dirname "$0")" 2>&1 >/dev/null && pwd -P)"

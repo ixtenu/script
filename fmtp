@@ -2,11 +2,7 @@
 # fmt(1) wrapper script for prefixed text
 # useful for comments (e.g., "//" prefix) and quotations (">" prefix)
 set -u
-
-# dash doesn't (yet) support pipefail
-if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
-	set -o pipefail
-fi
+command -v setpipefail >/dev/null && . "$(which setpipefail)"
 
 usage() {
 	echo "usage: $0 [-w width] [-p prefix]" 1>&$1

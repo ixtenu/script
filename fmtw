@@ -1,11 +1,7 @@
 #!/usr/bin/env sh
 # fmt(1) wrapper script
 set -u
-
-# dash doesn't (yet) support pipefail
-if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
-	set -o pipefail
-fi
+command -v setpipefail >/dev/null && . "$(which setpipefail)"
 
 usage() {
 	echo "usage: $0 [-w width]" 1>&$1

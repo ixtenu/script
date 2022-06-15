@@ -1,11 +1,7 @@
 #!/usr/bin/env sh
 # readtags(1) (universal-ctags) wrapper script
 set -u
-
-# dash doesn't (yet) support pipefail
-if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
-	set -o pipefail
-fi
+command -v setpipefail >/dev/null && . "$(which setpipefail)"
 
 if [ $# != 1 ]; then
 	echo "usage: $0 symbol_name" 1>&2

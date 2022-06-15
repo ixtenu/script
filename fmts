@@ -1,11 +1,7 @@
 #!/usr/bin/env sh
 # fmt(1) wrapper with smarts for prefixed text and bulleted lists
 set -u
-
-# dash doesn't (yet) support pipefail
-if [ "$(uname)" = "Linux" -a "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
-	set -o pipefail
-fi
+command -v setpipefail >/dev/null && . "$(which setpipefail)"
 
 # create a temporary file which is deleted on exit
 tmpf="$(mktemp)"

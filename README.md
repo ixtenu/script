@@ -46,6 +46,10 @@ Portable:
   [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`), [gitdc](gitdc)
   (`git diff --cached`), [gitp](gitp) (`git pull`), [git1](git1) `git show`,
   [gits](gits) (`git status`), [gitu](gitu) (`git push`).
+- [setpipefail](setpipefail): does `set -o pipefail` if the shell supports
+  it (currently, support is assumed except for the Linux dash shell used by
+  Debian-based distros).  Does nothing useful on its own; it's meant to be
+  sourced by other scripts.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
