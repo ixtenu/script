@@ -20,6 +20,8 @@ Portable:
 - [ut](ut): `unexpand(1)` wrapper; accepts optional file name arguments.
 - [c](c): `sed(1)` wrapper to comment-out lines.
 - [uc](uc): `sed(1)` wrapper to uncomment-out lines.
+- [lower](lower) and [upper](upper) are trivial `tr` wrappers to convert text
+  to lowercase or uppercase.
 - [i](i): indent text by one tab (default) or four spaces (with `-e`) or an
   arbitrary number of spaces (with `-E n`).
 - [ui](ui): unindent text by one level (by default, four spaces and/or one tab,
