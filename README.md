@@ -42,7 +42,7 @@ Portable:
 - [mkexe](mkexe): `touch(1)` and `chmod +x` paths in one command.
 - [no9](no9): remove `$PLAN9/bin` (see [plan9port][p9p]) from the `$PATH`, if
   present, and run a command.
-- [md2html](md2html): use [pandoc][pd] to convert a Markdown file to HTML and
+- [md2htm](md2htm): use [pandoc][pd] to convert a Markdown file to HTML and
   optionally open it in a web browser.
 - Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git commit`),
   [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`), [gitdc](gitdc)
