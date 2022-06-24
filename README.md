@@ -23,7 +23,7 @@ Portable:
 - [lower](lower) and [upper](upper) are trivial `tr` wrappers to convert text
   to lowercase or uppercase.
 - [i](i): indent text by one tab (default) or four spaces (with `-e`) or an
-  arbitrary number of spaces (with `-E n`).
+  arbitrary number of spaces (with `-E n`).  [is](is) is an alias for `i -e`.
 - [ui](ui): unindent text by one level (by default, four spaces and/or one tab,
   which works for either, as long as tabs don't follow spaces; also implements
   `-e` and `-E n` options to unindent spaces only).
