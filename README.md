@@ -44,6 +44,7 @@ Portable:
   present, and run a command.
 - [md2htm](md2htm): use [pandoc][pd] to convert a Markdown file to HTML and
   optionally open it in a web browser.
+- [ddiso](ddiso): `dd(1)` wrapper for writing an ISO to a disk.
 - Git subcommand aliases: [gita](gita) (`git add`), [gitc](gitc) (`git commit`),
   [gitcp](gitcp) (`git cherry-pick`), [gitd](gitd) (`git diff`), [gitdc](gitdc)
   (`git diff --cached`), [gitp](gitp) (`git pull`), [git1](git1) `git show`,

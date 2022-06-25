@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+# dd(1) wrapper for writing an ISO image to a block device (e.g., a USB stick)
+set -eu
+
+if [ $# -ne 2 ]; then
+	echo "usage: $0 iso_file block_device" 1>&2
+	echo "Write the named iso_file to the named block_device." 1>&2
+	exit 1
+fi
+iso="$1"
+if [ ! -f "$iso" ]; then
+	echo "$0: $iso is not an existing regular file" 1>&2
+	exit 1
+fi
+bdev="$2"
+if [ ! -b "$bdev" ]; then
+	echo "$0: $bdev is not an existing block-special file" 1>&2
+	exit 1
+fi
+
+set -x
+time dd if="$iso" of="$bdev" bs=4M conv=fsync oflag=sync status=progress && sync
