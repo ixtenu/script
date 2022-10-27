@@ -2,7 +2,7 @@
 # convert a markdown file to html and optionally open it
 set -e
 
-if ! command -v pandoc 2>&1 >/dev/null; then
+if ! command -v pandoc >/dev/null 2>&1; then
 	echo "error: pandoc not found in PATH, is it installed?" 1>&2
 	exit 1
 fi
@@ -59,9 +59,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $open -ne 0 ]; then
-	if command -v xdg-open 2>&1 >/dev/null; then
+	if command -v xdg-open >/dev/null 2>&1; then
 		xdg-open "$htmlfile"
-	elif command -v open 2>&1 >/dev/null; then
+	elif command -v open >/dev/null 2>&1; then
 		open "$htmlfile"
 	else
 		echo "$0: don't know how to open $htmlfile" 1>&2

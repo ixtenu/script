@@ -3,9 +3,9 @@
 # uses find(1) as a fallback
 set -u
 
-if command -v fdfind 2>&1 >/dev/null; then
+if command -v fdfind >/dev/null 2>&1; then
 	fdfind "$@"
-elif command -v fd 2>&1 >/dev/null; then
+elif command -v fd >/dev/null 2>&1; then
 	fd "$@"
 else
 	find . -name "*$1*"

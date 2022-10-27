@@ -10,9 +10,9 @@ if [ $# != 1 ]; then
 fi
 
 readtags=
-if command -v ureadtags 2>&1 >/dev/null; then
+if command -v ureadtags >/dev/null 2>&1; then
 	readtags="ureadtags"
-elif command -v readtags 2>&1 >/dev/null; then
+elif command -v readtags >/dev/null 2>&1; then
 	readtags="readtags"
 else
 	echo "$0: no readtags found in PATH, please install universal-ctags" 1>&2

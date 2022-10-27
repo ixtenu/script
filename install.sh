@@ -3,7 +3,7 @@ set -eu
 command -v setpipefail >/dev/null && . "$(which setpipefail)"
 
 outdir=$HOME/bin
-scriptdir="$(cd -- "$(dirname "$0")" 2>&1 >/dev/null && pwd -P)"
+scriptdir="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)"
 
 if [ $# -ne 0 ]; then
 	echo "$0: unexpected arguments: $@" 1>&2

@@ -3,9 +3,9 @@
 set -eu
 
 ctags=
-if command -v uctags 2>&1 >/dev/null; then
+if command -v uctags >/dev/null 2>&1; then
 	ctags="uctags"
-elif command -v ctags 2>&1 >/dev/null; then
+elif command -v ctags >/dev/null 2>&1; then
 	ctags="ctags"
 else
 	echo "$0: no ctags found in PATH, please install universal-ctags" 1>&2

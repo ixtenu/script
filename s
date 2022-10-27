@@ -2,9 +2,9 @@
 # recursive file search
 set -u
 
-if command -v rg 2>&1 >/dev/null; then
+if command -v rg >/dev/null 2>&1; then
 	rg --vimgrep "$@"
-elif command -v ag 2>&1 >/dev/null; then
+elif command -v ag >/dev/null 2>&1; then
 	ag --nocolor --noheading --nobreak "$@"
 else
 	no9 grep -Rn "$@"
