@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # print CPU temperature
 paste \
 	<(cat /sys/class/thermal/thermal_zone*/type) \
