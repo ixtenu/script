@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+# dd(1) wrapper for wiping a block device (e.g., an HDD)
+set -eu
+
+if [ $# -ne 1 ]; then
+	echo "usage: $0 block_device" 1>&2
+	echo "Overwrite the named block_device with pseudo-random data." 1>&2
+	exit 1
+fi
+
+bdev="$1"
+if [ ! -b "$bdev" ]; then
+	if [ -b "/dev/$bdev" ]; then
+		bdev="/dev/$bdev"
+	else
+		echo "$0: $bdev is not an existing block-special file" 1>&2
+		exit 1
+	fi
+fi
+
+set -x
+time sudo dd if=/dev/urandom of="$bdev" \
+	bs=4M conv=fsync oflag=direct,sync status=progress
+sync
