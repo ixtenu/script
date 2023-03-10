@@ -1,0 +1,93 @@
+#!/usr/bin/env sh
+# safely append a public key to ~/.ssh/authorized_keys
+# theoretically safer than "cat public_key >> ~/.ssh/authorized_keys"
+# (especially if you're prone to forgetting the 2nd '>' character...)
+set -eu
+
+usage() {
+	echo "usage: $0 [-dv] [-b akbak] public_key" 1>&$1
+	echo "Safely append public_key to $HOME/.ssh/authorized_keys." 1>&$1
+	echo "With -d, delete public_key when done." 1>&$1
+	echo "With -v, operate verbosely." 1>&$1
+	echo "With -b akbak, copy authorized_keys to akbak before changing it." 1>&$1
+	exit $(($1 - 1))
+}
+
+delete=0
+verbose=0
+backup=
+while getopts dvb:h opt; do
+	case $opt in
+	d) delete=1;;
+	v) verbose=1;;
+	b) backup="$OPTARG";;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $((OPTIND - 1))
+
+[ $# -ne 1 ] && usage 2
+
+public_key="$1"
+if [ ! -r "$public_key" ]; then
+	echo "error: \"$public_key\" is not a readable file" 1>&2
+	usage 2
+fi
+
+# handle edge case where ~/.ssh doesn't exist yet
+mkdir -p "$HOME/.ssh"
+
+# the whole point of this script is to update authorized_keys safely, so
+# creating a backup should be unnecessary; however, offer it as an option, for
+# extra paranoia
+if [ ! -z "$backup" ]; then
+	[ $verbose -ne 0 ] && echo "Backing up authorized_keys to $backup"
+	if [ -f "$HOME/.ssh/authorized_keys" ]; then
+		cp -a "$HOME/.ssh/authorized_keys" "$backup"
+	else
+		# if there is no existing authorized_keys file, then create an
+		# empty file as the backup
+		touch "$backup"
+	fi
+fi
+
+# create a temporary file which is deleted on exit
+tmpf="$(mktemp)"
+if [ $? -ne 0 ]; then
+	exit $?
+fi
+trap 'rm -f -- "$tmpf"' EXIT
+
+if [ $verbose -ne 0 ]; then
+	echo "Appending the below to $HOME/.ssh/authorized_keys:"
+	cat "$public_key"
+fi
+
+# the command:
+# cat "$public_key" >> "$HOME/.ssh/authorized_keys"
+# is mostly equivalent to the below, except that it's theoretically unsafe,
+# since there is no guarantee that the data appended to the file by cat will be
+# written atomically.
+
+# construct the new copy of authorized_keys
+if [ -e "$HOME/.ssh/authorized_keys" ]; then
+	cat "$HOME/.ssh/authorized_keys" "$public_key" > "$tmpf"
+else
+	# handle edge case where authorized_keys doesn't exist yet
+	cat "$public_key" > "$tmpf"
+fi
+# make sure it has the correct ownership and permissions
+chown "$(id -u -n)":"$(id -g -n)" "$tmpf"
+chmod 0644 "$tmpf"
+# flush caches
+sync
+# atomically replace the old authorized_keys with the new one
+mv "$tmpf" "$HOME/.ssh/authorized_keys"
+# flush caches again
+sync
+
+if [ $delete -ne 0 ]; then
+	[ $verbose -ne 0 ] && echo "Deleting \"$public_key\""
+	rm "$public_key"
+fi
