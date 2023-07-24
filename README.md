@@ -57,6 +57,7 @@ Portable:
   it (currently, support is assumed except for the Linux dash shell used by
   Debian-based distros).  Does nothing useful on its own; it's meant to be
   sourced by other scripts.
+- [zfs-health](zfs-health): Health check-up for systems running [ZFS][zfs].
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
