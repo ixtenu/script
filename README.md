@@ -58,6 +58,8 @@ Portable:
   Debian-based distros).  Does nothing useful on its own; it's meant to be
   sourced by other scripts.
 - [zfs-health](zfs-health): Health check-up for systems running [ZFS][zfs].
+- [nec](nec): GNU [nano][nano] wrapper script which implements partial support
+  for [.editorconfig][ec] files.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
@@ -66,6 +68,8 @@ Portable:
 [uct]: https://ctags.io/
 [ghag]: https://github.com/ggreer/the_silver_searcher
 [pd]: https://pandoc.org/
+[nano]: https://www.nano-editor.org/
+[ec]: https://editorconfig.org/
 
 Linux-specific:
 

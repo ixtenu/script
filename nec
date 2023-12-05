@@ -1,0 +1,88 @@
+#!/usr/bin/env sh
+# GNU nano wrapper script which implements partial support for .editorconfig
+# files.  See <https://editorconfig.org/>.
+# Only a subset of the editorconfig settings are supported:
+# indent_style, indent_size, and insert_final_newline.
+set -eu
+
+# $1 = executable name
+# $2 = package name
+inpath() {
+	if ! command -v "$1" >/dev/null 2>&1; then
+		echo "$0: no $1 found in PATH, please install $2" 1>&2
+		exit 1
+	fi
+}
+
+# Doesn't make sense to run this unless nano(1) is available.
+inpath nano nano
+
+# This script relies on editorconfig(1) to parse the .editorconfig.
+inpath editorconfig editorconfig-core-c
+
+# By default, don't add any options.
+nano_opt=
+
+# Use the first file name given to nano as the basis for the editorconfig
+# settings.  Although nano can be given multiple file names, and those files
+# might use different settings, the nano command-line options affect all files
+# being opened, so using the first file name is the best we can do.
+fname=
+optend=0
+for f in $@; do
+	# If a "--" is found, anything afterward is a file name, even if it
+	# starts with a hyphen.
+	[ $optend -eq 1 ] && fname="$f" && break
+	[ "$f" = "--" ] && optend=1
+	# Assume anything starting with a hyphen is an option.
+	echo "$f" | grep "^-" >/dev/null && continue
+	# Found the first file name.
+	fname="$f"
+	break
+done
+
+# If we found a file name...
+if [ ! -z "$fname" ]; then
+	# Create a temporary file which is deleted on exit.
+	tmpf="$(mktemp)"
+	trap 'rm -f -- "$tmpf"' EXIT
+	# editorconfig wants full paths.
+	fname="$(readlink -f -- "$fname")"
+	# Dump the editorconfig settings for the given file to the temporary
+	# file.  If no .editorconfig file is found, this will write an empty
+	# file.
+	editorconfig "$fname" > "$tmpf"
+
+	# Extract the editorconfig options and convert them into nano
+	# command-line options.
+
+	indent_style="$(grep '^indent_style=' "$tmpf" | sed 's/^indent_style=//')"
+	if [ "$indent_style" = "space" ]; then
+		nano_opt="$nano_opt --tabstospaces"
+	elif [ "$indent_style" = "tab" ]; then
+		# nano doesn't have an option which forces hard tabs.  However,
+		# hard tabs are the default behavior, so simply not using an
+		# option will work -- unless "set tabstospaces" has been put
+		# into the nanorc, which we have no way to override here, so
+		# don't do that if you want this script to work.
+		true
+	fi
+
+	indent_size="$(grep '^indent_size=' "$tmpf" | sed 's/^indent_size=//')"
+	if [ ! -z "$indent_size" ]; then
+		nano_opt="$nano_opt --tabsize=$indent_size"
+	fi
+
+	insert_final_newline="$(grep '^insert_final_newline=' "$tmpf" | sed 's/^insert_final_newline=//')"
+	if [ "$insert_final_newline" = "false" ]; then
+		nano_opt="$nano_opt --nonewlines"
+	elif [ "$insert_final_newline" = "true" ]; then
+		# Like indent_style=tab, there is no option for this but it is
+		# the default behavior, unless nanorc overrides it.
+		true
+	fi
+fi
+
+# Execute nano, with the extra options derived from the .editorconfig (if any),
+# passing along all command-line options.
+exec nano $nano_opt $@
