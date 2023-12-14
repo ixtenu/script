@@ -25,7 +25,9 @@ installfile() {
 	if [ -L "$lp" ]; then
 		# Don't rewrite the symbolic link unless it's changed.
 		[ -e "$lp" ] && efp="$(readlink -f "$lp")" || efp=
-		[ "$fp" != "$efp" ] && ln -sf $lnvopt "$fp" "$lp"
+		if [ "$fp" != "$efp" ]; then
+			ln -sf $lnvopt "$fp" "$lp"
+		fi
 	elif [ ! -e "$lp" ]; then
 		ln -s $lnvopt "$fp" "$lp"
 	else
