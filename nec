@@ -85,4 +85,4 @@ fi
 
 # Execute nano, with the extra options derived from the .editorconfig (if any),
 # passing along all command-line options.
-exec nano $nano_opt $@
+exec nano $nano_opt "$@"
