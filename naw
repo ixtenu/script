@@ -1,0 +1,60 @@
+#!/usr/bin/env sh
+# GNU nano wrapper script.  Supported functionality:
+# - Uses nec (nano editorconfig) wrapper script if appropriate
+# - Recognizes git commit messages and enables appropriate settings
+set -eu
+
+iscmd() {
+	command -v "$1" >/dev/null 2>&1
+}
+
+# This is a GNU nano wrapper script -- it needs nano to be useful.
+if ! iscmd nano; then
+	echo "$0: no nano found in PATH, please install it"
+	exit 1
+fi
+
+# Command for running nano.
+nano=nano
+
+# If the nec (nano editorconfig) script is available, and the editorconfig(1)
+# command that it needs is available, and an .editorconfig file exists in the
+# PWD or above it, then run nec instead of nano.
+if iscmd nec && iscmd editorconfig; then
+	pwd_orig="$(pwd)"
+	while [ true ]; do
+		if [ -f ".editorconfig" ]; then
+			nano=nec
+			break
+		fi
+		[ "$(pwd)" = "/" ] && break
+		cd ..
+	done
+	cd "$pwd_orig"
+fi
+
+# By default, don't add any options.
+nano_opt=
+
+fname=
+fcount=0
+optend=0
+for f in $@; do
+	if [ $optend -eq 0 ]; then
+		# If a "--" is found, anything afterward is a file name, even if
+		# it starts with a hyphen.
+		[ "$f" = "--" ] && optend=1 && continue
+		# Assume anything starting with a hyphen is an option.
+		echo "$f" | grep "^-" >/dev/null && continue
+	fi
+	# Save the first file name.
+	[ -z "$fname" ] && fname="$f"
+	fcount=$((fcount+1))
+done
+
+if [ $fcount -eq 1 ] && [ "$(basename "$fname")" = "COMMIT_EDITMSG" ]; then
+	nano_opt="$nano_opt --fill=72 --breaklonglines"
+fi
+
+# Execute nano, with any extra options, passing along all command-line options.
+exec $nano $nano_opt "$@"
