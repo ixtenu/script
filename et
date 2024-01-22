@@ -35,7 +35,7 @@ for f in "$@"; do
 	expand -t$tabw <"$f" >"$tmpf"
 	if [ $? -ne 0 ]; then
 		ev=$?
-		echo "$0: error expanding $f into $tmpf, stopping" 2>&1
+		echo "$0: error expanding $f into $tmpf, stopping" 1>&2
 		exit $ev
 	fi
 
@@ -47,7 +47,7 @@ for f in "$@"; do
 		cat "$tmpf" >"$f"
 		if [ $? -ne 0 ]; then
 			ev=$?
-			echo "$0: error writing $tmpf into $f, stopping" 2>&1
+			echo "$0: error writing $tmpf into $f, stopping" 1>&2
 			exit $ev
 		fi
 	fi

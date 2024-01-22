@@ -45,7 +45,7 @@ for f in "$@"; do
 	unexpand $targ <"$f" >"$tmpf"
 	if [ $? -ne 0 ]; then
 		ev=$?
-		echo "$0: error unexpanding $f into $tmpf, stopping" 2>&1
+		echo "$0: error unexpanding $f into $tmpf, stopping" 1>&2
 		exit $ev
 	fi
 
@@ -57,7 +57,7 @@ for f in "$@"; do
 		cat "$tmpf" >"$f"
 		if [ $? -ne 0 ]; then
 			ev=$?
-			echo "$0: error writing $tmpf into $f, stopping" 2>&1
+			echo "$0: error writing $tmpf into $f, stopping" 1>&2
 			exit $ev
 		fi
 	fi

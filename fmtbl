@@ -65,7 +65,7 @@ if [ $bopt -eq 0 ]; then
 	cat >"$file"
 	if [ $? -ne 0 ]; then
 		ev=$?
-		echo "$0: error writing stdin into $file, stopping" 2>&1
+		echo "$0: error writing stdin into $file, stopping" 1>&2
 		exit $ev
 	fi
 
@@ -74,7 +74,7 @@ if [ $bopt -eq 0 ]; then
 	bullet="$(sed 1q "$file" | awk '{ print $1 }')"
 	if [ $? -ne 0 ]; then
 		ev=$?
-		echo "$0: error reading first line of $file, stopping" 2>&1
+		echo "$0: error reading first line of $file, stopping" 1>&2
 		exit $ev
 	fi
 fi

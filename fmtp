@@ -39,7 +39,7 @@ trap 'rm -f -- "$tmpf"' EXIT
 cat >"$tmpf"
 if [ $? -ne 0 ]; then
 	ev=$?
-	echo "$0: error writing stdin into $tmpf, stopping" 2>&1
+	echo "$0: error writing stdin into $tmpf, stopping" 1>&2
 	exit $ev
 fi
 
@@ -49,7 +49,7 @@ if [ "$prefix" = "" ]; then
 	prefix="$(sed 1q "$tmpf" | awk '{ print $1 }')"
 	if [ $? -ne 0 ]; then
 		ev=$?
-		echo "$0: error reading first line of $tmpf, stopping" 2>&1
+		echo "$0: error reading first line of $tmpf, stopping" 1>&2
 		exit $ev
 	fi
 
@@ -77,7 +77,7 @@ if [ $? -eq 0 ]; then
 	ichar="$(sed 1q "$tmpf" | $sed 's/\(.\).*/\1/')"
 	if [ $? -ne 0 ]; then
 		ev=$?
-		echo "$0: error reading first character of $tmpf, stopping" 2>&1
+		echo "$0: error reading first character of $tmpf, stopping" 1>&2
 		exit $ev
 	fi
 	postexpand=cat
