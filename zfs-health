@@ -25,7 +25,7 @@ if [ -d /etc/nixos ]; then
 	[ -d "$configdir" ] && configarg="--configdir=${configdir}"
 fi
 
-# To avoid interferring with the sanoid system service, use a separate temporary
+# To avoid interfering with the sanoid system service, use a separate temporary
 # directory.
 tmpd="$(mktemp -d)"
 trap 'rm -rf -- "$tmpd"' EXIT
