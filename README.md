@@ -61,6 +61,7 @@ Portable:
 - GNU [nano][nano] wrapper scripts: [nec](nec) implements partial support for
   [.editorconfig][ec] files and [naw](naw) has an extra rule for Git commit
   messages.
+- [vol](vol): Volume (audio) control.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
