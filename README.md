@@ -63,6 +63,7 @@ Portable:
   messages.
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
+- [bl](bl): Backlight brightness control.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
