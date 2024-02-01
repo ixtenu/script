@@ -62,6 +62,7 @@ Portable:
   [.editorconfig][ec] files and [naw](naw) has an extra rule for Git commit
   messages.
 - [vol](vol): Volume (audio) control.
+- [mic](mic): Enable or disable the microphone.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
