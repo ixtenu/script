@@ -36,7 +36,7 @@ bl_get() {
 	elif is_cmd xbacklight; then
 		xbacklight
 	else
-		echo "$0: don't know how to set backlight on this system" 1>&2
+		echo "$0: don't know how to get backlight on this system" 1>&2
 		exit 1
 	fi
 }
@@ -99,7 +99,7 @@ bl_set() {
 	elif is_cmd xbacklight; then
 		xbacklight -set $v
 	else
-		echo "$0: don't know how to set volume on this system" 1>&2
+		echo "$0: don't know how to set backlight on this system" 1>&2
 		exit 1
 	fi
 }
