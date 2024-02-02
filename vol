@@ -58,7 +58,7 @@ volume_get() {
 	if is_cmd pamixer; then
 		pamixer --get-volume-human
 	elif is_cmd amixer; then
-		amixer -q get Master
+		amixer get Master
 	elif is_cmd sndioctl; then
 		sndioctl output.level
 	elif is_cmd mixer; then
