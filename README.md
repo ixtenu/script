@@ -58,10 +58,10 @@ Portable:
   Debian-based distros).  Does nothing useful on its own; it's meant to be
   sourced by other scripts.
 - [zfs-health](zfs-health): Health check-up for systems running [ZFS][zfs].
-- [naw](naw) is a GNU [nano][nano] wrapper script which implements partial
-  support for [.editorconfig][ec] files, plus an extra rule for Git commit
-  messages.
-- [saw](saw) is a [Sam][sam] wrapper script which sets `TABS`.
+- [nano-wrapper](nano-wrapper) is a GNU [nano][nano] wrapper script which
+  implements partial support for [.editorconfig][ec] files, plus an extra rule
+  for Git commit messages.
+- [sam-wrapper](sam-wrapper) is a [Sam][sam] wrapper script which sets `TABS`.
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
 - [bl](bl): Backlight brightness control.
