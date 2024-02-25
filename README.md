@@ -61,6 +61,7 @@ Portable:
 - [naw](naw) is a GNU [nano][nano] wrapper script which implements partial
   support for [.editorconfig][ec] files, plus an extra rule for Git commit
   messages.
+- [saw](saw) is a [Sam][sam] wrapper script which sets `TABS`.
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
 - [bl](bl): Backlight brightness control.
@@ -74,6 +75,7 @@ Portable:
 [pd]: https://pandoc.org/
 [nano]: https://www.nano-editor.org/
 [ec]: https://editorconfig.org/
+[sam]: https://github.com/deadpixi/sam
 
 Linux-specific:
 

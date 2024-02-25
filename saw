@@ -1,0 +1,131 @@
+#!/usr/bin/env sh
+# Sam wrapper script.  Implements options and .editorconfig [1] parsing to set
+# the TABS environment variable supported by the deadpixi version [2] of Sam.
+# This script is not useful with the plan9port version [3] of Sam, because that
+# version of Sam does not use the TABS environment variable.
+# [1]: https://editorconfig.org/
+# [2]: https://github.com/deadpixi/sam
+# [3]: https://github.com/9fans/plan9port
+set -eu
+
+usage() {
+	echo "usage: $0 [-t tab_stop] [-i] [file ...]" 1>&$1
+	echo "Wrapper script for the Sam text editor." 1>&$1
+	echo "-t tab_stop: distance between tab stops." 1>&$1
+	echo "-i: expand tabs to spaces." 1>&$1
+	exit $(($1 - 1))
+}
+
+is_uint() {
+	case $1 in
+	''|*[!0-9]*) return 1;;
+	*) return 0;;
+	esac
+}
+
+is_cmd() {
+	command -v "$1" >/dev/null 2>&1
+}
+
+# This is a Sam wrapper script -- it needs sam to be useful.
+if ! is_cmd sam; then
+	echo "$0: no sam found in PATH, please install it" 1>&2
+	exit 1
+fi
+
+tabstop=
+spaces=
+while getopts t:ih o; do
+	case $o in
+	t) tabstop=$OPTARG;;
+	i) spaces=1;;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+# Find the first file name.
+fname=
+optend=0
+for f in $@; do
+	# If a "--" is found, anything afterward is a file name, even if it
+	# starts with a hyphen.
+	[ $optend -eq 1 ] && fname="$f" && break
+	[ "$f" = "--" ] && optend=1
+	# Assume anything starting with a hyphen is an option.
+	echo "$f" | grep "^-" >/dev/null && continue
+	# Found the first file name.
+	fname="$f"
+	break
+done
+
+# Use the first file name given to sam as the basis for the editorconfig
+# settings.  Although sam can be given multiple file names, and those files
+# might use different settings, the TABS environment variable affect all files
+# being opened, so using the first file name is the best we can do.
+if [ ! -z "$fname" ] && is_cmd editorconfig; then
+	# Does the file have an .editorconfig in its parent directory or in any
+	# of the ancestor directories?
+	have_editorconfig=0
+	fdir="$(dirname "$(readlink -f -- "$fname")")"
+	if [ -d "$fdir" ]; then
+		pwd_orig="$PWD"
+		cd "$fdir"
+		while [ true ]; do
+			if [ -f ".editorconfig" ]; then
+				have_editorconfig=1
+				break
+			fi
+			[ "$PWD" = "/" ] && break
+			cd ..
+		done
+		cd "$pwd_orig"
+	fi
+
+	if [ $have_editorconfig -ne 0 ]; then
+		# Create a temporary file which is deleted on exit.
+		tmpf="$(mktemp)"
+		trap 'rm -f -- "$tmpf"' EXIT
+		# editorconfig wants full paths.
+		fname="$(readlink -f -- "$fname")"
+		# Dump the editorconfig settings for the given file to the
+		# temporary file.  If no .editorconfig file is found, this will
+		# write an empty file.
+		editorconfig "$fname" > "$tmpf"
+
+		# If $spaces or $tabstop were set via -i or -t, those
+		# explicitly given values take precedence over the
+		# .editorconfig values.
+
+		if [ -z "$spaces" ]; then
+			indent_style="$(grep '^indent_style=' "$tmpf" | sed 's/^indent_style=//')"
+			if [ "$indent_style" = "space" ]; then
+				spaces=1
+			elif [ "$indent_style" = "tab" ]; then
+				spaces=0
+			fi
+		fi
+
+		if [ -z "$tabstop" ]; then
+			indent_size="$(grep '^indent_size=' "$tmpf" | sed 's/^indent_size=//')"
+			[ ! -z "$indent_size" ] && tabstop=$indent_size
+		fi
+	fi
+fi
+
+# Set TABS only if tabstop was given (either via -t or an .editorconfig).
+# Otherwise, preserve the prior value of TABS from the environment.
+if [ ! -z "$tabstop" ]; then
+	# Sam ignores the tab stop size if it's outside this range.
+	if ! is_uint $tabstop || [ $tabstop -lt 1 ] || [ $tabstop -gt 12 ]; then
+		echo "$0: tab stop must be between 1 and 12" 1>&2
+		exit 1
+	fi
+	# If TABS is negative, Sam expands tabs to spaces.
+	[ ! -z $spaces ] && [ $spaces -ne 0 ] && tabstop=-${tabstop}
+	# Set/export TABS to override Sam's tab settings.
+	export TABS=$tabstop
+fi
+
+exec sam "$@"
