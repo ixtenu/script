@@ -9,7 +9,7 @@
 set -eu
 
 usage() {
-	echo "usage: $0 [-t tab_stop] [-i] [file ...]" 1>&$1
+	echo "usage: $0 [-t tab_stop] [-i] [sam_options] [file ...]" 1>&$1
 	echo "Wrapper script for the Sam text editor." 1>&$1
 	echo "-t tab_stop: distance between tab stops." 1>&$1
 	echo "-i: expand tabs to spaces." 1>&$1
@@ -35,10 +35,17 @@ fi
 
 tabstop=
 spaces=
-while getopts t:ih o; do
+samopt=
+while getopts t:idSr:s:T:h o; do
 	case $o in
 	t) tabstop=$OPTARG;;
 	i) spaces=1;;
+	# Pass -dSrs along to sam if given.
+	d|S) samopt="$samopt -$o";;
+	r|s) samopt="$samopt -$o $OPTARG";;
+	# sam's -t option is rarely useful but provide a way to use it even
+	# though we've hijacked -t for the tabstop value
+	T) samopt="$samopt -t $OPTARG";;
 	h) usage 1;;
 	?) usage 2;;
 	esac
@@ -128,4 +135,4 @@ if [ ! -z "$tabstop" ]; then
 	export TABS=$tabstop
 fi
 
-exec sam "$@"
+exec sam $samopt "$@"
