@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 # GNU nano wrapper script.  Supported functionality:
-# - Uses nec (nano editorconfig) wrapper script if appropriate
-# - Recognizes git commit messages and enables appropriate settings
+# - Implements partial support for .editorconfig files: only indent_style,
+#   indent_size, and insert_file_newline are supported
+# - Recognizes Git commit messages and enables appropriate settings
 set -eu
 
 iscmd() {
@@ -14,28 +15,10 @@ if ! iscmd nano; then
 	exit 1
 fi
 
-# Command for running nano.
-nano=nano
-
-# If the nec (nano editorconfig) script is available, and the editorconfig(1)
-# command that it needs is available, and an .editorconfig file exists in the
-# PWD or above it, then run nec instead of nano.
-if iscmd nec && iscmd editorconfig; then
-	pwd_orig="$(pwd)"
-	while [ true ]; do
-		if [ -f ".editorconfig" ]; then
-			nano=nec
-			break
-		fi
-		[ "$(pwd)" = "/" ] && break
-		cd ..
-	done
-	cd "$pwd_orig"
-fi
-
 # By default, don't add any options.
 nano_opt=
 
+# Find the first file name and count the number of file names.
 fname=
 fcount=0
 optend=0
@@ -52,9 +35,78 @@ for f in $@; do
 	fcount=$((fcount+1))
 done
 
+# Use the first file name given to nano as the basis for the editorconfig
+# settings.  Although nano can be given multiple file names, and those files
+# might use different settings, the nano command-line options affect all files
+# being opened, so using the first file name is the best we can do.
+if [ ! -z "$fname" ] && iscmd editorconfig; then
+	# Does the file have an .editorconfig in its parent directory or in any
+	# of the ancestor directories?
+	have_editorconfig=0
+	fdir="$(dirname "$(readlink -f -- "$fname")")"
+	if [ -d "$fdir" ]; then
+		pwd_orig="$PWD"
+		cd "$fdir"
+		while [ true ]; do
+			if [ -f ".editorconfig" ]; then
+				have_editorconfig=1
+				break
+			fi
+			[ "$PWD" = "/" ] && break
+			cd ..
+		done
+		cd "$pwd_orig"
+	fi
+
+	if [ $have_editorconfig -ne 0 ]; then
+		# Create a temporary file which is deleted on exit.
+		tmpf="$(mktemp)"
+		trap 'rm -f -- "$tmpf"' EXIT
+		# editorconfig wants full paths.
+		fname="$(readlink -f -- "$fname")"
+		# Dump the editorconfig settings for the given file to the
+		# temporary file.  If no .editorconfig file is found, this will
+		# write an empty file.
+		editorconfig "$fname" > "$tmpf"
+
+		# Extract the editorconfig options and convert them into nano
+		# command-line options.
+
+		indent_style="$(grep '^indent_style=' "$tmpf" | sed 's/^indent_style=//')"
+		if [ "$indent_style" = "space" ]; then
+			nano_opt="$nano_opt --tabstospaces"
+		elif [ "$indent_style" = "tab" ]; then
+			# nano doesn't have an option which forces hard tabs.
+			# However, hard tabs are the default behavior, so
+			# simply not using an option will work -- unless "set
+			# tabstospaces" has been put into the nanorc, which we
+			# have no way to override here, so don't do that if you
+			# want this script to work.
+			true
+		fi
+
+		indent_size="$(grep '^indent_size=' "$tmpf" | sed 's/^indent_size=//')"
+		if [ ! -z "$indent_size" ]; then
+			nano_opt="$nano_opt --tabsize=$indent_size"
+		fi
+
+		insert_final_newline="$(grep '^insert_final_newline=' "$tmpf" | sed 's/^insert_final_newline=//')"
+		if [ "$insert_final_newline" = "false" ]; then
+			nano_opt="$nano_opt --nonewlines"
+		elif [ "$insert_final_newline" = "true" ]; then
+			# Like indent_style=tab, there is no option for
+			# this but it is the default behavior, unless nanorc
+			# overrides it.
+			true
+		fi
+	fi
+fi
+
+# If nano has been invoked for a commit message, set the fill column to 72
+# and enable hard line wrapping, in keeping with Git conventions.
 if [ $fcount -eq 1 ] && [ "$(basename "$fname")" = "COMMIT_EDITMSG" ]; then
 	nano_opt="$nano_opt --fill=72 --breaklonglines"
 fi
 
 # Execute nano, with any extra options, passing along all command-line options.
-exec $nano $nano_opt "$@"
+exec nano $nano_opt "$@"

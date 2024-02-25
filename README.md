@@ -58,8 +58,8 @@ Portable:
   Debian-based distros).  Does nothing useful on its own; it's meant to be
   sourced by other scripts.
 - [zfs-health](zfs-health): Health check-up for systems running [ZFS][zfs].
-- GNU [nano][nano] wrapper scripts: [nec](nec) implements partial support for
-  [.editorconfig][ec] files and [naw](naw) has an extra rule for Git commit
+- [naw](naw) is a GNU [nano][nano] wrapper script which implements partial
+  support for [.editorconfig][ec] files, plus an extra rule for Git commit
   messages.
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
