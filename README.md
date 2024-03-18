@@ -58,10 +58,12 @@ Portable:
   Debian-based distros).  Does nothing useful on its own; it's meant to be
   sourced by other scripts.
 - [zfs-health](zfs-health): Health check-up for systems running [ZFS][zfs].
-- [nano-wrapper](nano-wrapper) is a GNU [nano][nano] wrapper script which
-  implements partial support for [.editorconfig][ec] files, plus an extra rule
-  for Git commit messages.
-- [sam-wrapper](sam-wrapper) is a [Sam][sam] wrapper script which sets `TABS`.
+- Text editor wrapper scripts which implement partial support for
+  [.editorconfig][ec] files:
+  - [nano-wrapper](nano-wrapper) for GNU [nano][nano]; also has an extra rule
+    for Git commit messages.
+  - [sam-wrapper](sam-wrapper) for [Sam][sam].
+  - [godit-wrapper](godit-wrapper) for (my fork of) [godit][godit].
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
 - [bl](bl): Backlight brightness control.
@@ -76,6 +78,7 @@ Portable:
 [nano]: https://www.nano-editor.org/
 [ec]: https://editorconfig.org/
 [sam]: https://github.com/deadpixi/sam
+[godit]: https://github.com/ixtenu/godit
 
 Linux-specific:
 

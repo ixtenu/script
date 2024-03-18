@@ -1,0 +1,90 @@
+#!/usr/bin/env sh
+# godit wrapper script which uses indent_style and indent_size from
+# .editorconfig to automatically add -e and -t options.
+#
+# NOTE: Upstream godit does not have -e and -t options.  This script only
+# works with my fork: <https://github.com/ixtenu/godit>
+set -eu
+
+iscmd() {
+	command -v "$1" >/dev/null 2>&1
+}
+
+# This is a godit wrapper script -- it needs godit to be useful.
+if ! iscmd godit; then
+	echo "$0: no godit found in PATH, please install it"
+	exit 1
+fi
+
+# By default, don't add any options.
+godit_opt=
+
+# Find the first file name.
+fname=
+optend=0
+for f in $@; do
+	# If a "--" is found, anything afterward is a file name, even if it
+	# starts with a hyphen.
+	[ $optend -eq 1 ] && fname="$f" && break
+	[ "$f" = "--" ] && optend=1
+	# Assume anything starting with a hyphen is an option.
+	echo "$f" | grep "^-" >/dev/null && continue
+	# Found the first file name.
+	fname="$f"
+	break
+done
+
+# Use the first file name given to godit as the basis for the editorconfig
+# settings.  Although godit can be given multiple file names, and those files
+# might use different settings, the godit command-line options affect all files
+# being opened, so using the first file name is the best we can do.
+if [ ! -z "$fname" ] && iscmd editorconfig; then
+	# Does the file have an .editorconfig in its parent directory or in any
+	# of the ancestor directories?
+	have_editorconfig=0
+	fdir="$(dirname "$(readlink -f -- "$fname")")"
+	if [ -d "$fdir" ]; then
+		pwd_orig="$PWD"
+		cd "$fdir"
+		while [ true ]; do
+			if [ -f ".editorconfig" ]; then
+				have_editorconfig=1
+				break
+			fi
+			[ "$PWD" = "/" ] && break
+			cd ..
+		done
+		cd "$pwd_orig"
+	fi
+
+	if [ $have_editorconfig -ne 0 ]; then
+		# Create a temporary file which is deleted on exit.
+		tmpf="$(mktemp)"
+		trap 'rm -f -- "$tmpf"' EXIT
+		# editorconfig wants full paths.
+		fname="$(readlink -f -- "$fname")"
+		# Dump the editorconfig settings for the given file to the
+		# temporary file.  If no .editorconfig file is found, this will
+		# write an empty file.
+		editorconfig "$fname" > "$tmpf"
+
+		# Extract the editorconfig options and convert them into godit
+		# command-line options.
+
+		indent_style="$(grep '^indent_style=' "$tmpf" | sed 's/^indent_style=//')"
+		if [ "$indent_style" = "space" ]; then
+			godit_opt="$godit_opt -e"
+		elif [ "$indent_style" = "tab" ]; then
+			# This is the default behavior.
+			true
+		fi
+
+		indent_size="$(grep '^indent_size=' "$tmpf" | sed 's/^indent_size=//')"
+		if [ ! -z "$indent_size" ]; then
+			godit_opt="$godit_opt -t $indent_size"
+		fi
+	fi
+fi
+
+# Execute godit, with any extra options, passing along all command-line options.
+exec godit $godit_opt "$@"
