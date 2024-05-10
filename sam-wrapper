@@ -72,13 +72,20 @@ done
 # might use different settings, the TABS environment variable affect all files
 # being opened, so using the first file name is the best we can do.
 if [ ! -z "$fname" ] && is_cmd editorconfig; then
+	# editorconfig wants full paths.
+	if [ "$(uname)" = "OpenBSD" ] && [ ! -e "$fname" ]; then
+		# OpenBSD readlink(1) requires an existing path.
+		fnamepath="$(readlink -f -- "$(dirname "$fname")")/$fname"
+	else
+		fnamepath="$(readlink -f -- "$fname")"
+	fi
 	# Does the file have an .editorconfig in its parent directory or in any
 	# of the ancestor directories?
+	fdirpath="$(dirname "$fnamepath")"
 	have_editorconfig=0
-	fdir="$(dirname "$(readlink -f -- "$fname")")"
-	if [ -d "$fdir" ]; then
+	if [ -d "$fdirpath" ]; then
 		pwd_orig="$PWD"
-		cd "$fdir"
+		cd "$fdirpath"
 		while [ true ]; do
 			if [ -f ".editorconfig" ]; then
 				have_editorconfig=1
@@ -94,12 +101,10 @@ if [ ! -z "$fname" ] && is_cmd editorconfig; then
 		# Create a temporary file which is deleted on exit.
 		tmpf="$(mktemp)"
 		trap 'rm -f -- "$tmpf"' EXIT
-		# editorconfig wants full paths.
-		fname="$(readlink -f -- "$fname")"
 		# Dump the editorconfig settings for the given file to the
 		# temporary file.  If no .editorconfig file is found, this will
 		# write an empty file.
-		editorconfig "$fname" > "$tmpf"
+		editorconfig "$fnamepath" > "$tmpf"
 
 		# If $spaces or $tabstop were set via -i or -t, those
 		# explicitly given values take precedence over the
