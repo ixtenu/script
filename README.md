@@ -31,6 +31,8 @@ Portable:
   with `find(1)`.
 - [s](s): recursively search file contents with [rg][ghrg], [ag][ghag], or
   `grep(1)`, in that order of preference.
+- [rd2u](rd2u): recursively run `dos2unix(1)` on all files in a directory (and
+  its subdirectories) which contain DOS newlines.
 - [ci](ci) and [cs](cs) are thin wrapper scripts for the `cindex` and `csearch`
   programs from [codesearch][cs].  [pci](pci) and [pcs](psc) are variant
   wrapper scripts for using a project-specific index file.

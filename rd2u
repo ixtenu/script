@@ -1,0 +1,43 @@
+#!/usr/bin/env sh
+# Recursively run dos2unix on all files in a directory (and its subdirectories)
+# which contain DOS newlines.
+set -eu
+
+if ! command -v dos2unix >/dev/null 2>&1; then
+	echo "error: no dos2unix found in PATH, please install it" 1>&2
+	exit 1
+fi
+
+dos2unix_if_needed() {
+	# Skip files without "\r\n" so that we don't print messages for files
+	# that were already using Unix newlines.  dos2unix is supposed to ignore
+	# binary files, so we shouldn't need to worry about skipping them.
+	file="$1"
+	if grep -q $'\r$' "$file"; then
+		dos2unix -v "$file"
+	fi
+}
+
+dos2unix_recursive() {
+	dir="$1"
+	for de in "$dir"/*; do
+		if [ -f "$de" ]; then
+			dos2unix_if_needed "$de"
+		elif [ -d "$de" ]; then
+			dos2unix_recursive "$de"
+		fi
+	done
+}
+
+if [ $# -ne 1 ]; then
+	echo "usage: $0 directory_path"
+	exit 1
+fi
+
+directory="$1"
+if [ ! -d "$directory" ]; then
+	echo "error: directory '$directory' does not exist."
+	exit 1
+fi
+
+dos2unix_recursive "$directory"
