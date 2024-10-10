@@ -69,6 +69,8 @@ Portable:
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
 - [bl](bl): Backlight brightness control.
+- [nix-zsh](nix-zsh): [nix-shell(1)][nixsh] wrapper script which adds `--run zsh`
+  to the command-line parameters.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
@@ -81,6 +83,7 @@ Portable:
 [ec]: https://editorconfig.org/
 [sam]: https://github.com/deadpixi/sam
 [godit]: https://github.com/ixtenu/godit
+[nixsh]: https://nix.dev/manual/nix/latest/command-ref/nix-shell
 
 Linux-specific:
 
