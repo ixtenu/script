@@ -7,16 +7,33 @@ if [ $# -ne 2 ]; then
 	echo "Write the named iso_file to the named block_device." 1>&2
 	exit 1
 fi
+
 iso="$1"
 if [ ! -f "$iso" ]; then
 	echo "$0: $iso is not an existing regular file" 1>&2
 	exit 1
 fi
+
 bdev="$2"
 if [ ! -b "$bdev" ]; then
-	echo "$0: $bdev is not an existing block-special file" 1>&2
-	exit 1
+	if [ -b "/dev/$bdev" ]; then
+		bdev="/dev/$bdev"
+	else
+		echo "$0: $bdev is not an existing block-special file" 1>&2
+		exit 1
+	fi
+fi
+
+pe=''
+if [ "$(id -u)" != "0" ]; then
+	if command -v doas >/dev/null 2>&1; then
+		pe='doas'
+	elif command -v sudo >/dev/null 2>&1; then
+		pe='sudo'
+	fi
 fi
 
 set -x
-time dd if="$iso" of="$bdev" bs=4M conv=fsync oflag=sync status=progress && sync
+time $pe dd if="$iso" of="$bdev" \
+     bs=4M conv=fsync oflag=direct,sync status=progress
+sync
