@@ -16,7 +16,7 @@ prefix=""
 while getopts w:p:h name; do
 	case $name in
 	w) width=$OPTARG;;
-	p) prefix=$OPTARG;;
+	p) prefix="$OPTARG";;
 	h) usage 1;;
 	?) usage 2;;
 	esac
@@ -30,28 +30,27 @@ fi
 
 # create a temporary file which is deleted on exit
 tmpf="$(mktemp)"
-if [ $? -ne 0 ]; then
-	exit $?
-fi
+[ $? -ne 0 ] && exit $?
 trap 'rm -f -- "$tmpf"' EXIT
+
+errchk() {
+	ev=$?
+	errmsg="$1"
+	if [ $ev -ne 0 ]; then
+		echo "$errmsg" 1>&2
+		exit $ev
+	fi
+}
 
 # dump stdin to the temporary file
 cat >"$tmpf"
-if [ $? -ne 0 ]; then
-	ev=$?
-	echo "$0: error writing stdin into $tmpf, stopping" 1>&2
-	exit $ev
-fi
+errchk "$0: error writing stdin into $tmpf, stopping"
 
 # if prefix is unspecified, try to auto-detect it
-if [ "$prefix" = "" ]; then
+if [ -z "$prefix" ]; then
 	# first token on first line is taken as the prefix
 	prefix="$(sed 1q "$tmpf" | awk '{ print $1 }')"
-	if [ $? -ne 0 ]; then
-		ev=$?
-		echo "$0: error reading first line of $tmpf, stopping" 1>&2
-		exit $ev
-	fi
+	errchk "$0: error reading first line of $tmpf, stopping"
 
 	# Sanity check the prefix length.  Doxygen comments are "///" and
 	# batch file comments are "rem", so allow prefixes <= 3 bytes; longer
@@ -75,15 +74,9 @@ if [ $? -eq 0 ]; then
 	# back into spaces; then if (and only if) the line was indented with
 	# tabs, convert the leading indentation back into tabs.
 	ichar="$(sed 1q "$tmpf" | $sed 's/\(.\).*/\1/')"
-	if [ $? -ne 0 ]; then
-		ev=$?
-		echo "$0: error reading first character of $tmpf, stopping" 1>&2
-		exit $ev
-	fi
+	errchk "$0: error reading first character of $tmpf, stopping"
 	postexpand=cat
-	if [ "$ichar" = "	" ]; then
-		postexpand="unexpand --first-only"
-	fi
+	[ "$ichar" = "	" ] && postexpand="unexpand --first-only"
 	$fmt --uniform-spacing --width=$width --goal=$width \
 		--prefix="$prefix " <"$tmpf" | \
 		expand | $postexpand
