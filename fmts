@@ -23,11 +23,6 @@ errchk "$0: error writing stdin into $tmpf, stopping"
 
 line_count() { wc -l "$tmpf" | awk '{ print $1 }'; }
 
-options="$@"
-fmt_normal() { fmtw "$options" < "$tmpf"; exit $?; }
-fmt_prefixed() { fmtp -p"$1" "$options" < "$tmpf"; exit $?; }
-fmt_bulleted() { echo fmtbl -b"$1" "$options" < "$tmpf"; exit $?; }
-
 gettok() {
 	line_num=$1
 	tok_num=$2
@@ -40,8 +35,56 @@ token="$(gettok 1 1)"
 
 # does this look like a bulleted list?
 for t in '-' '*' '+'; do
-	[ "$token" = "$t" ] && fmt_bulleted "$t"
+	if [ "$token" = "$t" ]; then
+		fmtbl -b"$t" "$options" < "$tmpf"
+		exit $?
+	fi
 done
+
+options="$@"
+
+# for prefixed text, format only until the prefix stops, and print anything
+# afterward as-is; this behavior is convenient when stdin is a comment followed
+# by code.
+fmt_prefixed() {
+	prefix="$1"
+	[ $# -ge 2 ] && first_line=$2 || first_line=1
+	last_line=$first_line
+	while [ "$(gettok $((last_line+1)) 1)" = "$prefix" ]; do
+		last_line=$((last_line+1))
+	done
+	set -e
+	count=$(line_count)
+	sed -n ${first_line},${last_line}p "$tmpf" | fmtp -p"$prefix" $options
+	[ $last_line -lt $count ] && sed -n $((last_line+1)),${count}p "$tmpf"
+	exit 0
+}
+
+# Special case for multi-line C comments with star decorators on each line, e.g.:
+#
+# /*
+#  * Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+#  * do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+#  */
+if [ "$token" = "/*" ] && [ -z "$(gettok 1 2)" ]; then
+	count="$(line_count)"
+	if [ $count -ge 3 ]; then
+		stars=0
+		end=2
+		itoken=''
+		for i in $(seq $end $count); do
+			end=$i
+			itoken="$(gettok $i 1)"
+			[ "$itoken" != "*" ] && break
+			stars=$((stars+1))
+		done
+		if [ $stars -ge 1 ] && [ "$itoken" = "*/" ] && [ -z "$(gettok $end 2)" ]; then
+			set -e
+			sed -n 1p "$tmpf"
+			fmt_prefixed '*' 2
+		fi
+	fi
+fi
 
 # does this look like a markdown quotation or a line comment?
 tokenlc=$(echo "$token" | tr '[A-Z]' '[a-z]')
@@ -67,4 +110,4 @@ if [ "$token" = "--" ]; then
 fi
 
 # normal text
-fmt_normal
+fmtw "$@" < "$tmpf"
