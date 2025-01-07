@@ -43,5 +43,25 @@ for t in '>' '//' '///' '#' '##' 'rem' '%' '!'; do
 	fi
 done
 
+# "--" is trickier because it's a line comment in some programming languages
+# (e.g., Lua, Haskell, Ada) but it's also used as an ASCII representation of
+# an en dash (which might just happen to fall on the start of a line); treat
+# it as a comment if and only if all non-blank lines start with it.
+if [ "$token" = "--" ]; then
+        all='yes'
+        count="$(wc -l "$tmpf" | awk '{print $1 }')"
+        for i in $(seq 2 $count); do
+                itoken="$(sed -n ${i}p "$tmpf" | awk '{ print $1 }')"
+                if [ -n "$itoken" ] && [ "$itoken" != "--" ]; then
+                        all='no'
+                        break
+                fi
+        done
+        if [ "$all" = "yes" ]; then
+                cat "$tmpf" | fmtp -p"$token" "$@"
+                exit $?
+        fi
+fi
+
 # normal text
 cat "$tmpf" | fmtw "$@"
