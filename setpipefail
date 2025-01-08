@@ -2,7 +2,11 @@
 # set -o pipefail if supported by the shell
 # meant to be sourced by other scripts; does nothing useful on its own
 
-# dash doesn't (yet) support pipefail
-if [ "$(uname)" != "Linux" -o "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
+# the only commonly-used shell which doesn't support pipefail is dash
+# support for pipefail was committed to dash in 2024:
+# https://git.kernel.org/pub/scm/utils/dash/dash.git/commit/?id=6347b9fc52d742f36a0276cdea06cd9ad1f02c77
+# once that change has been released and makes it into LTS distros which use
+# dash as sh (e.g. Ubuntu), then this script will be obsolete
+if [ "$(uname)" != "Linux" ] || [ "$(readlink -f $(which sh))" != "/usr/bin/dash" ]; then
 	set -o pipefail
 fi
