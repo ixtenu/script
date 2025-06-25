@@ -20,34 +20,57 @@ while getopts t:h name; do
 done
 shift $(($OPTIND - 1))
 
-if [ $# -eq 0 ]; then
-	exec expand -t$tabw
-fi
+[ $# -eq 0 ] && exec expand -t$tabw
 
-# create a temporary file which is deleted on exit
-tmpf="$(mktemp)"
-if [ $? -ne 0 ]; then
-	exit $?
-fi
-trap 'rm -f -- "$tmpf"' EXIT
+cp_attr() {
+	src="$1"
+	dst="$2"
+	if [ "$(uname)" = "Linux" ]; then
+		# copy attributes only
+		# GNU coreutils cp(1) extension
+		cp -a --attributes-only "$src" "$dst"
+	else
+		# copies attributes _and_ data
+		cp -a "$src" "$dst"
+	fi
+}
 
 for f in "$@"; do
+	# create a temporary file
+	tmpf="$(mktemp)"
+	if [ $? -ne 0 ]; then
+		ev=$?
+		echo "$0: error creating temporary file, stopping" 1>&2
+		exit $ev
+	fi
+
+	# ensure the temporary file has the same attributes as the file being
+	# processed, so that no attributes are changed when replace the file
+	# being processed with the original file
+	cp_attr "$f" "$tmpf"
+	if [ $? -ne 0 ]; then
+		ev=$?
+		echo "$0: error updating attributes on $tmpf, stopping" 1>&2
+		rm "$tmpf"
+		exit $ev
+	fi
+
 	expand -t$tabw <"$f" >"$tmpf"
 	if [ $? -ne 0 ]; then
 		ev=$?
 		echo "$0: error expanding $f into $tmpf, stopping" 1>&2
+		rm "$tmpf"
 		exit $ev
 	fi
 
 	# skip rewriting the file if nothing changed
-	if ! cmp "$tmpf" "$f" >/dev/null 2>&1; then
-		# using cat (even though it's not atomic) to rewrite the
-		# file so that the original metadata (e.g., permissions) are
-		# preserved
-		cat "$tmpf" >"$f"
+	if cmp "$tmpf" "$f" >/dev/null 2>&1; then
+		rm "$tmpf"
+	else
+		mv "$tmpf" "$f"
 		if [ $? -ne 0 ]; then
 			ev=$?
-			echo "$0: error writing $tmpf into $f, stopping" 1>&2
+			echo "$0: error moving $tmpf to $f, stopping" 1>&2
 			exit $ev
 		fi
 	fi
