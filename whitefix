@@ -1,0 +1,203 @@
+#!/usr/bin/env sh
+set -eu
+
+usage() {
+	echo "usage: $0 [-gGenH] [files...]" 1>&$1
+	echo "Apply whitespace fixes to files." 1>&$1
+	echo "If file list is empty, reads from stdin and writes to stdout." 1>&$1
+	echo "If an .editorconfig is exists, it will be used to decide whether tabs should be expanded." 1>&$1
+	echo "Options:" 1>&$1
+	echo "-g  Add modified files in current git repo to the file list." 1>&$1
+	echo "-G  Add staged files in current git repo to the file list." 1>&$1
+	echo "-e  Force tab expansion." 1>&$1
+	echo "-n  Dry run." 1>&$1
+	echo "-H  Print this usage string." 1>&$1
+	exit $(($1 - 1))
+}
+
+git_modified=0
+git_staged=0
+force_expand=0
+dry_run=0
+while getopts gGenHh param; do
+	case $param in
+	g) git_modified=1;;
+	G) git_staged=1;;
+	e) force_expand=1;;
+	n) dry_run=1;;
+	H) usage 1;;
+	h) usage 1;;
+	?) usage 2;;
+	esac
+done
+shift $((OPTIND - 1))
+
+# is file a regular file with read+write permissions?
+filerw() {
+	fname="$1"
+	if [ -f "$fname" ] && [ -r "$fname" ] && [ -w "$fname" ]; then
+		return 0 # true
+	else
+		return 1 # false
+	fi
+}
+
+# build a list of files to process
+mlist="$(mktemp)"
+trap 'rm -f -- "$mlist"' EXIT
+
+addfile() {
+	fname="$1"
+	if [ -d "$fname" ]; then
+		for de in "$fname"/*; do
+			addfile "$de"
+		done
+	elif ! filerw "$1"; then
+		echo "error: $1 is not a readable/writable regular file" 1>&2
+		exit 1
+	else
+		echo "$fname" >> "$mlist"
+	fi
+}
+
+# when run with arguments, each argument is assumed to be a file to process.
+while [ $# -gt 0 ]; do
+	addfile "$1"
+	shift
+done
+
+# add modified and/or staged files from git repository
+if [ $git_modified -ne 0 ] || [ $git_staged -ne 0 ]; then
+	if ! command -v git >/dev/null 2>&1; then
+		echo "error: no git in PATH" 1>&2
+		exit 1
+	fi
+	if ! git status >/dev/null 2>&1; then
+		echo "error: not in a git repository" 1>&2
+		exit 1
+	fi
+	if [ $git_modified -ne 0 ]; then
+		git status -s | grep '^ M ' | sed 's/^ M //' >> "$mlist"
+	fi
+	if [ $git_staged -ne 0 ]; then
+		git status -s | grep '^[MA]  ' | sed 's/^[MA]  //' >> "$mlist"
+	fi
+	# when -g/-G are given, we aren't being run as a filter, so stop if
+	# there aren't any files.
+	[ ! -s "$mlist" ] && exit 0
+fi
+
+# if file list is empty, switch to "filter mode": read from stdin, write to stdout
+filter_mode=0
+if [ ! -s "$mlist" ]; then
+	if [ $dry_run -ne 0 ]; then
+		echo "error: dry run option is unsupported in filter mode" 1>&2
+		exit 1
+	fi
+	filter_mode=1
+	# dump stdin to a file and add it to the file list, so that this needn't
+	# be implemented as a special case
+	iotmp="$(mktemp)"
+	trap 'rm -f -- "$iotmp"' EXIT
+	cat > "$iotmp"
+	echo "$iotmp" > "$mlist"
+fi
+
+cp_attr() {
+	src="$1"
+	dst="$2"
+	if [ "$(uname)" = "Linux" ]; then
+		# copy attributes only
+		# GNU coreutils cp(1) extension
+		cp -a --attributes-only "$src" "$dst"
+	else
+		# copies attributes _and_ data
+		cp -a "$src" "$dst"
+	fi
+}
+
+# for a given file, should tabs be expanded to spaces?
+should_expand() {
+	[ $force_expand -ne 0 ] && return 0 # true
+	[ $filter_mode -ne 0 ] && return 1 # false
+	! command -v editorconfig >/dev/null 2>&1 && return 1 # false
+	fname="$(readlink -f -- "$1")"
+	if editorconfig "$fname" | grep -q '^indent_style=space$'; then
+		return 0 # true
+	fi
+	return 1 # false
+}
+
+has_ext() {
+	fname="$1"
+	ext="$2"
+	if [ "$(echo "$fname" | sed "s/.$ext$$//")" != "$fname" ]; then
+		return 0 # true
+	else
+		return 1 # false
+	fi
+}
+
+while IFS= read -r file; do
+	if ! filerw "$file"; then
+		echo "$file: skipping, not a readable/writable regular file" 1>&2
+		continue
+	fi
+
+	# expand tabs to spaces (optional)
+	if should_expand "$file" && grep -qP '\t' "$file"; then
+		# makefiles should always use tabs, never expand to spaces
+		if [ "$(echo "$file" | tr 'A-Z' 'a-z')" != "makefile" ] && \
+		! has_ext "$file" ".mk" && ! has_ext "$file" ".mak"; then
+			[ $filter_mode -eq 0 ] && echo "$file: expanding hard tabs to spaces"
+			if [ $dry_run -eq 0 ]; then
+				etmp="$(mktemp)"
+				cp_attr "$file" "$etmp" # preserve attributes
+				expand -t4 < "$file" > "$etmp"
+				mv "$etmp" "$file"
+			fi
+		fi
+	fi
+
+	# remove trailing whitespace
+	if grep -qP '[ \t]+$' "$file"; then
+		# trailing whitespace is expected in patch files, leave it alone
+		if ! has_ext "$file" '.patch' && ! has_ext "$file" '.diff'; then
+			[ $filter_mode -eq 0 ] && echo "$file: removing trailing whitespace"
+			[ $dry_run -eq 0 ] && sed -i 's/[ \t]\+$//' "$file"
+		fi
+	fi
+
+	# ensure exactly one newline before EOF
+	ntmp="$(mktemp)"
+	cp_attr "$file" "$ntmp" # preserve attributes
+	awk '
+BEGIN {
+	blank = 0
+}
+{
+	if ($0 ~ /^$/) {
+		blank++
+	} else {
+		while (blank > 0) {
+			print ""
+			blank--
+		}
+		blank = 0
+		print
+	}
+}
+	' < "$file" > "$ntmp"
+	if ! cmp -s "$ntmp" "$file"; then
+		[ $filter_mode -eq 0 ] && echo "$file: normalizing newlines before EOF"
+		# using cat to replace the file contents,
+		# since that preserves permissions &c.
+		[ $dry_run -eq 0 ] && cat "$ntmp" > "$file"
+	fi
+	rm -f "$ntmp"
+
+done < "$mlist"
+
+[ $dry_run -ne 0 ] && echo "THIS WAS A DRY RUN!  No files were modified!"
+
+[ $filter_mode -ne 0 ] && cat "$iotmp"

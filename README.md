@@ -18,6 +18,7 @@ Portable:
   are aliases for `fmts -w72` and `fmts -w80`, respectively.
 - [et](et): `expand(1)` wrapper; accepts optional file name arguments.
 - [ut](ut): `unexpand(1)` wrapper; accepts optional file name arguments.
+- [whitefix](whitefix): apply various whitespace fixes to file(s).
 - [c](c): `sed(1)` wrapper to comment-out lines.
 - [uc](uc): `sed(1)` wrapper to uncomment-out lines.
 - [lower](lower) and [upper](upper) are trivial `tr` wrappers to convert text
