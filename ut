@@ -20,14 +20,20 @@ while getopts t:h name; do
 done
 shift $(($OPTIND - 1))
 
-# all unexpand(1) implementations except OpenBSD's support -t
-targ="-t$tabw"
-if [ "$(uname)" = "OpenBSD" ]; then
-	if [ $tabw -ne 8 ]; then
+targ=""
+if [ $tabw -ne 8 ]; then
+	# all unexpand(1) implementations except OpenBSD's support -t
+	targ="-t$tabw"
+	if [ "$(uname)" = "OpenBSD" ]; then
 		echo "$0: OpenBSD unexpand lacks -t option, must use -t8" 1>&2
 		exit 1
 	fi
-	targ=""
+fi
+
+# -t implicitly enables -a which we don't really want.  GNU coreutils has a
+# ---first-only option to disable -a; use that if it's available.
+if [ -n "$targ" ] && echo "" | unexpand --first-only >/dev/null 2>&1; then
+	targ="$targ --first-only"
 fi
 
 [ $# -eq 0 ] && exec unexpand $targ
