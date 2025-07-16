@@ -144,6 +144,12 @@ while IFS= read -r file; do
 		continue
 	fi
 
+	# check for \r\n newlines
+	is_crlf=0
+	if file "$file" | grep -q 'with CRLF line terminators'; then
+		is_crlf=1
+	fi
+
 	# expand tabs to spaces (optional)
 	if should_expand "$file" && grep -qP '\t' "$file"; then
 		# makefiles should always use tabs, never expand to spaces
@@ -195,6 +201,10 @@ BEGIN {
 		[ $dry_run -eq 0 ] && cat "$ntmp" > "$file"
 	fi
 	rm -f "$ntmp"
+
+	# the above may have written \n newlines into the file;
+	# if it had \r\n newlines originally, preserve that.
+	[ $is_crlf -ne 0 ] && unix2dos -q "$file"
 
 done < "$mlist"
 
