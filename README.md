@@ -72,6 +72,10 @@ Portable:
 - [bl](bl): Backlight brightness control.
 - [nix-zsh](nix-zsh): [nix-shell(1)][nixsh] wrapper script which adds `--run zsh`
   to the command-line parameters.
+- [tailscale-etc-hosts](tailscale-etc-hosts): manually add (or update)
+  `/etc/hosts` with the [Tailscale][tailscale] IP addresses and host names of
+  each online host on the Tailnet.  This is useful primarily when Tailscale's
+  MagicDNS feature has been disabled.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
@@ -85,6 +89,7 @@ Portable:
 [sam]: https://github.com/deadpixi/sam
 [godit]: https://github.com/ixtenu/godit
 [nixsh]: https://nix.dev/manual/nix/latest/command-ref/nix-shell
+[tailscale]: https://tailscale.com/
 
 Linux-specific:
 

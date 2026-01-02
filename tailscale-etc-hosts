@@ -1,0 +1,52 @@
+#!/usr/bin/env sh
+# Manually add or update /etc/hosts with Tailscale IP addresses and host names.
+# (Only makes sense to do this when Tailscale's MagicDNS is disabled.)
+set -eu
+
+if ! command -v tailscale >/dev/null 2>&1; then
+	echo "$0: no tailscale found in PATH" 1>&2
+	exit 1
+fi
+if ! command -v jq >/dev/null 2>&1; then
+	echo "$0: no jq found in PATH" 1>&2
+	exit 1
+fi
+
+hostfile=/etc/hosts
+if [ ! -f "$hostfile" ]; then
+	echo "$0: $hostfile does not exist as a regular file" 1>&2
+fi
+
+if [ $UID -ne 0 ]; then
+	echo "$0: must be root" 1>&2
+	exit 1
+fi
+
+ts_append() {
+	echo '# Tailscale host addresses' >> "$1"
+	tailscale status --json \
+		| jq -r '.Peer[] | select(.Online) | "\(.TailscaleIPs[0]) \(.HostName)"' >> "$1"
+}
+
+# Expect to find the Tailscale section of /etc/hosts at the end of the file,
+# following a specific comment.
+ts_lineno="$(grep -n '^# Tailscale host addresses$' "$hostfile" | sed 1q | awk -F':' '{print $1}')"
+if [ -z "$ts_lineno" ]; then
+	# /etc/hosts has no entries for Tailscale, append them now.
+	ts_append "$hostfile"
+else
+	tmpf="$(mktemp)"
+	trap 'rm -f -- "$tmpf"' EXIT
+	# /etc/hosts has entries for Tailscale, but they might be stale.
+	# Combine the portion of /etc/hosts prior to the Tailscale entries with
+	# freshly-generated Tailscale entries.
+	sed $((${ts_lineno} - 1))q "$hostfile" > "$tmpf"
+	ts_append "$tmpf"
+	# Update /etc/hosts only if it has changed.
+	if ! cmp -s "$tmpf" "$hostfile"; then
+		mv "$tmpf" "$hostfile"
+	fi
+fi
+
+# Display the (possibly updated) /etc/hosts.
+cat "$hostfile"
