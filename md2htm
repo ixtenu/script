@@ -44,7 +44,7 @@ fi
 htmlfile="$(echo "$mdfile" | sed 's/.md$//' | sed 's/.markdown$//').html"
 
 pandoc \
-	--from=markdown \
+	--from=gfm \
 	--to=html5 \
 	--standalone \
 	--preserve-tabs \
