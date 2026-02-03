@@ -70,6 +70,8 @@ Portable:
 - [vol](vol): Volume (audio) control.
 - [mic](mic): Enable or disable the microphone.
 - [bl](bl): Backlight brightness control.
+- [nix-nu](nix-nu): [nix-shell(1)][nixsh] wrapper script which adds `--run nu`
+  to the command-line parameters.
 - [nix-zsh](nix-zsh): [nix-shell(1)][nixsh] wrapper script which adds `--run zsh`
   to the command-line parameters.
 - [tailscale-etc-hosts](tailscale-etc-hosts): manually add (or update)
