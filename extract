@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# unzip/untar wrapper to extract compressed archives: will create a subdirectory
+# for the extracted files unless there is already a top-level subdirectory
+# inside the archive.
+set -euo pipefail
+
+archive="$1"
+
+if [[ ! -f "$archive" ]]; then
+	echo "usage: $0 <archive.zip|archive.tar.*>" 1>&2
+	exit 1
+fi
+
+# Strip common archive extensions to get the basename.
+base="$(basename "$archive")"
+name="${base%.zip}"
+name="${name%.tar}"
+name="${name%.tar.gz}"
+name="${name%.tgz}"
+name="${name%.tar.bz2}"
+name="${name%.tar.xz}"
+
+# Get list of top-level entries in the archive.
+top_levels() {
+	case "$archive" in
+	*.zip)
+		unzip -Z1 "$archive"
+		;;
+	*.tar|*.tar.gz|*.tgz|*.tar.bz2|*.tar.xz)
+		tar -tf "$archive"
+		;;
+	*)
+		echo "Unsupported archive type: $archive" >&2
+		exit 1
+		;;
+	esac | awk -F/ '{print $1}' | sort -u
+}
+
+mapfile -t tops < <(top_levels)
+
+# If the archive contains a single top-level entry whose name matches the
+# basename of the archive, then extract directly into the CWD.  Otherwise, if
+# the archive contains multiple top-level entries, or if the name differs, then
+# extract into a new subdirectory whose name is the basename of the archive.
+if [[ "${#tops[@]}" -eq 1 && "${tops[0]}" == "$name" ]]; then
+	echo "Extracting into CWD (top-level dir matches '$name')"
+	case "$archive" in
+	*.zip)
+		unzip -q "$archive"
+		;;
+	*)
+		tar -xf "$archive"
+		;;
+	esac
+else
+	echo "Extracting into subdirectory: $name/"
+	mkdir -p "$name"
+	case "$archive" in
+	*.zip)
+		unzip -q "$archive" -d "$name"
+		;;
+	*)
+		tar -xf "$archive" -C "$name"
+		;;
+	esac
+fi

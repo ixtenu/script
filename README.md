@@ -78,6 +78,8 @@ Portable:
   `/etc/hosts` with the [Tailscale][tailscale] IP addresses and host names of
   each online host on the Tailnet.  This is useful primarily when Tailscale's
   MagicDNS feature has been disabled.
+- [extract](extract): unzip/untar wrapper; creates a subdirectory for the
+  extracted files unless the archive already contains a top-level subdirectory.
 
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
