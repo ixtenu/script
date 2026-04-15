@@ -1,4 +1,11 @@
 #!/usr/bin/env sh
-# fmt(1) wrapper script for column 72
+# fp wrapper script for column 72
+set -eu
 
-fmts -w72 "$@"
+# see https://github.com/ixtenu/fp
+if ! command -v fp >/dev/null 2>&1; then
+	echo "$0: no fp found in PATH, please install it" 1>&2
+	exit 1
+fi
+
+fp -w72 "$@"

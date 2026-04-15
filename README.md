@@ -6,16 +6,8 @@ Utility scripts for Unix(-like) operating systems.
 
 Portable:
 
-- [fmtw](fmtw): `fmt(1)` wrapper to rewrap text at a given line width.
-- [fmtp](fmtp): `fmt(1)` wrapper to rewrap text at a given line width while
-  preserving a prefix (such as a comment token, e.g., `//` or `#`).  [80p](80p)
-  is an alias for `fmtp -w80`.
-- [fmtbl](fmtbl): `fmt(1)` wrapper to rewrap bulleted lists at a given line
-  width.  [72bl](72bl) and [80bl](80bl) are aliases for `fmtbl -w72` and `fmtbl
-  -w80`, respectively.
-- [fmts](fmts): a "smart" wrapper around `fmtw`, `fmtp`, and `fmtbl`, which
-  examines the input text and picks which script to use.  [72](72) and [80](80)
-  are aliases for `fmts -w72` and `fmts -w80`, respectively.
+- [fp][fp] ("fill paragraph") wrappers: [72](72), [80](80), and [100](100) are
+  aliases for `fp -w72`, `fp -w80`, and `fp -w100`, respectively.
 - [et](et): `expand(1)` wrapper; accepts optional file name arguments.
 - [ut](ut): `unexpand(1)` wrapper; accepts optional file name arguments.
 - [whitefix](whitefix): apply various whitespace fixes to file(s).
@@ -81,6 +73,7 @@ Portable:
 - [extract](extract): unzip/untar wrapper; creates a subdirectory for the
   extracted files unless the archive already contains a top-level subdirectory.
 
+[fp]: https://github.com/ixtenu/fp
 [ghfd]: https://github.com/sharkdp/fd
 [p9p]: https://9fans.github.io/plan9port/
 [ghrg]: https://github.com/BurntSushi/ripgrep
